@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { FadeIn } from "@/components/animations/FadeIn";
+import { showSecurityTipNotification } from "@/services/SecurityTipsService";
+import SecurityTipAlert from "@/components/SecurityTipAlert";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -16,6 +18,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [session, setSession] = useState(null);
+  const [showTip, setShowTip] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -32,6 +35,8 @@ const Auth = () => {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
+        // Show security tip when user logs in
+        showSecurityTipNotification();
         navigate("/");
       }
     });
@@ -67,6 +72,9 @@ const Auth = () => {
           title: "Login successful",
           description: "Welcome back!",
         });
+        
+        // Show a security tip after successful login
+        setShowTip(true);
       } else {
         // Sign up
         const { error } = await supabase.auth.signUp({
@@ -115,6 +123,8 @@ const Auth = () => {
               ? "Login to access your SecuraSentry dashboard" 
               : "Sign up to start monitoring for fraud activities"}
           </p>
+          
+          {showTip && <SecurityTipAlert className="mb-6" />}
           
           <form onSubmit={handleAuth} className="space-y-5">
             <div className="space-y-2">
