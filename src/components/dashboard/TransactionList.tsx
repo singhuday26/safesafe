@@ -64,7 +64,6 @@ const TransactionList: React.FC<TransactionListProps> = ({
                       getTransactionTypeVariant(transaction.type) === "default" ? "default" :
                       getTransactionTypeVariant(transaction.type) === "success" ? "default" :
                       getTransactionTypeVariant(transaction.type) === "warning" ? "secondary" :
-                      getTransactionTypeVariant(transaction.type) === "danger" ? "destructive" :
                       getTransactionTypeVariant(transaction.type) === "info" ? "default" :
                       "outline"
                     }>
