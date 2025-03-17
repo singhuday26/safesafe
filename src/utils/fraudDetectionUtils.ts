@@ -333,7 +333,7 @@ export const generateRiskInsights = (): RiskInsight[] => {
         "Change your password if this wasn't you",
         "Enable location-based verification"
       ],
-      securityImpact: "medium",
+      securityImpact: "medium" as "low" | "medium" | "high",
       aiExplanation: "Our AI detected a login from 1,500 km away from your usual location, which is outside your normal pattern of 10 km."
     },
     {
@@ -347,7 +347,7 @@ export const generateRiskInsights = (): RiskInsight[] => {
         "Enable multi-factor authentication",
         "Review recent account activity"
       ],
-      securityImpact: "medium",
+      securityImpact: "medium" as "low" | "medium" | "high",
       aiExplanation: "Typical brute force attack pattern detected. The attempts stopped after the account was temporarily locked."
     },
     {
@@ -361,7 +361,7 @@ export const generateRiskInsights = (): RiskInsight[] => {
         "Contact your bank immediately if unauthorized",
         "Freeze your card temporarily"
       ],
-      securityImpact: "high",
+      securityImpact: "high" as "low" | "medium" | "high",
       relatedTransactions: ["TRX-385291"],
       aiExplanation: "This transaction is 500% larger than your average transaction, occurred at an unusual time, and was made to a merchant you've never used before."
     },
@@ -376,7 +376,7 @@ export const generateRiskInsights = (): RiskInsight[] => {
         "Review recent transactions",
         "Add this device to trusted devices if it was you"
       ],
-      securityImpact: "medium",
+      securityImpact: "medium" as "low" | "medium" | "high",
       aiExplanation: "Device fingerprinting detected an unusual browser configuration and operating system version not previously associated with your account."
     },
     {
@@ -390,7 +390,7 @@ export const generateRiskInsights = (): RiskInsight[] => {
         "Consider requesting a new card",
         "Enable transaction notifications"
       ],
-      securityImpact: "high",
+      securityImpact: "high" as "low" | "medium" | "high",
       aiExplanation: "Our fraud intelligence network has received multiple reports of card skimming at this merchant location in the past 72 hours."
     }
   ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
