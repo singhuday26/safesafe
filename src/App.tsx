@@ -9,6 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import ProfileSettings from "./pages/ProfileSettings";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,11 @@ const AppRoutes = () => {
       <Route path="/" element={
         <ProtectedRoute>
           <Index />
+        </ProtectedRoute>
+      } />
+      <Route path="/profile/settings" element={
+        <ProtectedRoute>
+          <ProfileSettings />
         </ProtectedRoute>
       } />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

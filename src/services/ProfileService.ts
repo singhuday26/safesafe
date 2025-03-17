@@ -56,3 +56,18 @@ export const updateProfile = async (updates: Partial<Profile>): Promise<{ succes
     return { success: false, error: error.message };
   }
 };
+
+export const getProfileSummary = async (): Promise<string> => {
+  const profile = await getProfile();
+  
+  if (!profile) return 'Guest User';
+  
+  if (profile.first_name && profile.last_name) {
+    return `${profile.first_name} ${profile.last_name}`;
+  }
+  
+  if (profile.first_name) return profile.first_name;
+  
+  const { data } = await supabase.auth.getUser();
+  return data.user?.email?.split('@')[0] || 'User';
+};
