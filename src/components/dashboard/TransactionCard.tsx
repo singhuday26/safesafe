@@ -4,7 +4,7 @@ import { AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { Transaction, getRiskCategory, getRiskTextColor, formatCurrency } from "@/utils/mockData";
 import { cn } from "@/lib/utils";
 import RiskMeter from "./RiskMeter";
-import Badge from "../ui/Badge";
+import { Badge } from "../ui/badge";
 import { FadeIn } from "../animations/FadeIn";
 
 interface TransactionCardProps {
@@ -91,7 +91,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
           <div className="flex items-center">
             <h3 className="font-medium text-sm mr-2">{getTypeLabel(type)}</h3>
             <div className="flex items-center text-sm">
-              {statusIcon[status]}
+              {statusIcon[status as keyof typeof statusIcon]}
               <span className={cn(
                 "ml-1",
                 status === 'approved' ? 'text-success' : 

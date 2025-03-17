@@ -3,7 +3,7 @@ import React from "react";
 import { Activity } from "lucide-react";
 import { FadeIn, AnimateChildren } from "../animations/FadeIn";
 import { Transaction, formatDate, getStatusVariant } from "@/utils/mockData";
-import Badge from "../ui/Badge";
+import { Badge } from "../ui/badge";
 
 interface ActivityTimelineProps {
   transactions: Transaction[];
@@ -40,8 +40,9 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
                   <div className="flex items-center">
                     <p className="font-medium text-sm mr-2">{transaction.customer.name}</p>
                     <Badge 
-                      variant={getStatusVariant(transaction.status)}
-                      size="sm"
+                      variant={getStatusVariant(transaction.status) === "success" ? "default" : 
+                              getStatusVariant(transaction.status) === "warning" ? "secondary" : 
+                              getStatusVariant(transaction.status) === "danger" ? "destructive" : "outline"}
                     >
                       {transaction.status}
                     </Badge>

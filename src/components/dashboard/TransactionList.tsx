@@ -3,7 +3,7 @@ import React from "react";
 import { AlertTriangle, CheckCircle, Clock, Search } from "lucide-react";
 import { Transaction, formatCurrency, formatDate, getRiskCategory, getRiskTextColor, getStatusVariant, getTransactionTypeVariant } from "@/utils/mockData";
 import { cn } from "@/lib/utils";
-import Badge from "../ui/Badge";
+import { Badge } from "../ui/badge";
 import { FadeIn, AnimateChildren } from "../animations/FadeIn";
 
 interface TransactionListProps {
@@ -60,12 +60,24 @@ const TransactionList: React.FC<TransactionListProps> = ({
                     {formatCurrency(transaction.amount, transaction.currency)}
                   </td>
                   <td className="py-3 px-4">
-                    <Badge variant={getTransactionTypeVariant(transaction.type)} size="sm">
+                    <Badge variant={
+                      getTransactionTypeVariant(transaction.type) === "default" ? "default" :
+                      getTransactionTypeVariant(transaction.type) === "success" ? "default" :
+                      getTransactionTypeVariant(transaction.type) === "warning" ? "secondary" :
+                      getTransactionTypeVariant(transaction.type) === "danger" ? "destructive" :
+                      getTransactionTypeVariant(transaction.type) === "info" ? "default" :
+                      "outline"
+                    }>
                       {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
                     </Badge>
                   </td>
                   <td className="py-3 px-4">
-                    <Badge variant={getStatusVariant(transaction.status)} size="sm">
+                    <Badge variant={
+                      getStatusVariant(transaction.status) === "success" ? "default" :
+                      getStatusVariant(transaction.status) === "warning" ? "secondary" :
+                      getStatusVariant(transaction.status) === "danger" ? "destructive" :
+                      "outline"
+                    }>
                       {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
                     </Badge>
                   </td>
