@@ -104,35 +104,35 @@ export const generateRiskInsights = (): RiskInsight[] => {
       id: "insight-1",
       title: "Unusual login location detected",
       description: "A login was detected from a new location that is significantly different from your usual patterns.",
-      urgency: "high",
+      urgency: "high" as RiskLevel,
       timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000)
     },
     {
       id: "insight-2",
       title: "Multiple failed login attempts",
       description: "There were 5 failed login attempts on your account in the last hour.",
-      urgency: "medium",
+      urgency: "medium" as RiskLevel,
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000)
     },
     {
       id: "insight-3",
       title: "Large transaction flagged",
       description: "A transaction of $2,500 was flagged as potentially fraudulent based on your spending patterns.",
-      urgency: "critical",
+      urgency: "critical" as RiskLevel,
       timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000)
     },
     {
       id: "insight-4",
       title: "New device used for transaction",
       description: "A new device was used to make a payment that doesn't match your regular devices.",
-      urgency: "medium",
+      urgency: "medium" as RiskLevel,
       timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000)
     },
     {
       id: "insight-5",
       title: "Potential card skimming detected",
       description: "Your card was used at a location associated with recent skimming reports.",
-      urgency: "high",
+      urgency: "high" as RiskLevel,
       timestamp: new Date(Date.now() - 48 * 60 * 60 * 1000)
     }
   ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
