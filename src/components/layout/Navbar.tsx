@@ -1,9 +1,42 @@
 
 import React from "react";
-import { Shield } from "lucide-react";
+import { Shield, LogOut, Bell, Search } from "lucide-react";
 import { FadeIn } from "../animations/FadeIn";
+import { useAuth } from "@/context/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 const Navbar: React.FC = () => {
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing you out.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Get initials from user email
+  const getUserInitials = () => {
+    if (!user?.email) return "U";
+    const parts = user.email.split("@")[0].split(".");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return user.email.substring(0, 2).toUpperCase();
+  };
+
   return (
     <FadeIn>
       <header className="fixed top-0 left-0 right-0 z-50 px-6 glass-morphism">
@@ -11,6 +44,15 @@ const Navbar: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Shield className="h-6 w-6 text-primary" />
             <span className="font-semibold text-xl">SecuraSentry</span>
+          </div>
+          
+          <div className="hidden md:flex relative mx-auto max-w-md w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              className="w-full h-9 pl-10 pr-4 rounded-md bg-muted/50 border border-border focus:outline-none focus:ring-1 focus:ring-primary"
+            />
           </div>
           
           <nav className="hidden md:flex items-center space-x-8">
@@ -21,13 +63,33 @@ const Navbar: React.FC = () => {
           </nav>
           
           <div className="flex items-center space-x-4">
-            <button className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center hover:bg-muted click-bounce">
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7.22303 0.665992C7.32551 0.419604 7.67454 0.419604 7.77702 0.665992L9.41343 4.60039C9.45663 4.70426 9.55432 4.77523 9.66645 4.78422L13.914 5.12475C14.18 5.14607 14.2878 5.47802 14.0852 5.65162L10.849 8.42374C10.7636 8.49692 10.7263 8.61176 10.7524 8.72118L11.7411 12.866C11.803 13.1256 11.5206 13.3308 11.2929 13.1917L7.6564 10.9705C7.5604 10.9119 7.43965 10.9119 7.34365 10.9705L3.70718 13.1917C3.47945 13.3308 3.19708 13.1256 3.25899 12.866L4.24769 8.72118C4.2738 8.61176 4.23648 8.49692 4.15105 8.42374L0.914889 5.65162C0.712228 5.47802 0.820086 5.14607 1.08608 5.12475L5.3336 4.78422C5.44573 4.77523 5.54342 4.70426 5.58662 4.60039L7.22303 0.665992Z" fill="currentColor" />
-              </svg>
+            <button className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center hover:bg-muted click-bounce relative">
+              <Bell className="h-4 w-4" />
+              <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-primary"></span>
             </button>
-            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm">
-              AS
+            
+            <div className="relative group">
+              <Avatar className="cursor-pointer ring-2 ring-offset-2 ring-offset-background ring-primary/10">
+                <AvatarImage src={user?.user_metadata?.avatar_url} />
+                <AvatarFallback className="bg-primary/10 text-primary">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-popover border border-border invisible group-hover:visible transition-all duration-200 opacity-0 group-hover:opacity-100 z-50">
+                <div className="px-4 py-2 border-b border-border">
+                  <p className="text-sm font-medium truncate">{user?.email}</p>
+                  <p className="text-xs text-muted-foreground">User</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start px-4 py-2 text-sm text-destructive hover:text-destructive"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </Button>
+              </div>
             </div>
           </div>
         </div>
