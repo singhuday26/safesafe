@@ -25,7 +25,6 @@ const FraudDetectionDashboard: React.FC = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("7d");
   const [viewType, setViewType] = useState<"grid" | "list">("grid");
   
-  // Generate time period date range
   const getTimeRangeForPeriod = (): { startDate?: Date, endDate?: Date } => {
     const endDate = new Date();
     let startDate: Date | undefined;
@@ -51,19 +50,16 @@ const FraudDetectionDashboard: React.FC = () => {
     return { startDate, endDate };
   };
   
-  // Use our custom hooks to fetch data
   const { startDate, endDate } = getTimeRangeForPeriod();
   const { transactions, isLoading: isLoadingTransactions } = useTransactions(10, startDate, endDate);
   const { riskMetrics, isLoading: isLoadingMetrics } = useRiskMetrics();
   const { alerts, isLoading: isLoadingAlerts } = useSecurityAlerts(5);
   
-  // Fetch security tips
   const { data: insights, isLoading: isLoadingInsights } = useQuery({
     queryKey: ['securityTips'],
     queryFn: () => fetchSecurityTips(3),
   });
   
-  // Calculate dashboard stats based on real data
   const getDashboardStats = () => {
     const totalTransactions = transactions.length;
     const flaggedCount = transactions.filter(t => t.status === 'flagged').length;
@@ -76,7 +72,7 @@ const FraudDetectionDashboard: React.FC = () => {
         title: "Risk Score",
         value: riskMetrics?.overall_risk_score.toString() || "N/A",
         change: 5,
-        trend: "down", // Positive trend is down for risk
+        trend: "down",
         icon: "shield"
       },
       {
@@ -108,7 +104,6 @@ const FraudDetectionDashboard: React.FC = () => {
   
   const stats = getDashboardStats();
   
-  // Calculate overall risk score from actual risk metrics
   const overallRiskScore = riskMetrics?.overall_risk_score || 0;
   
   const getStatusBadge = (status: string) => {
@@ -190,7 +185,6 @@ const FraudDetectionDashboard: React.FC = () => {
     }
   };
 
-  // Loading states for different sections
   const renderTransactionSkeleton = () => (
     <TableRow>
       <TableCell>
@@ -229,7 +223,6 @@ const FraudDetectionDashboard: React.FC = () => {
   
   return (
     <FadeIn className="space-y-6">
-      {/* Dashboard Header with Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map(stat => (
           <Card key={stat.id} className="overflow-hidden">
@@ -259,9 +252,7 @@ const FraudDetectionDashboard: React.FC = () => {
         ))}
       </div>
       
-      {/* Main Dashboard Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Risk Overview */}
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Risk Overview</CardTitle>
@@ -312,7 +303,6 @@ const FraudDetectionDashboard: React.FC = () => {
           </CardContent>
         </Card>
         
-        {/* Transaction Activity */}
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
@@ -355,7 +345,9 @@ const FraudDetectionDashboard: React.FC = () => {
                             </div>
                             <div>
                               <div className="font-medium">{transaction.merchant}</div>
-                              <div className="text-xs text-muted-foreground">{formatDate(transaction.timestamp)}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {formatDate(parseTransactionDate(transaction.timestamp))}
+                              </div>
                             </div>
                           </div>
                         </TableCell>
@@ -386,7 +378,6 @@ const FraudDetectionDashboard: React.FC = () => {
           </CardContent>
         </Card>
         
-        {/* Risk Insights */}
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Security Tips</CardTitle>
