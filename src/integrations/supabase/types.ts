@@ -42,6 +42,233 @@ export type Database = {
         }
         Relationships: []
       }
+      risk_metrics: {
+        Row: {
+          behavior_risk_score: number
+          calculated_at: string
+          created_at: string
+          device_risk_score: number
+          flagged_transactions_count: number
+          fraud_attempts_count: number
+          id: string
+          location_risk_score: number
+          overall_risk_score: number
+          transaction_risk_score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          behavior_risk_score: number
+          calculated_at?: string
+          created_at?: string
+          device_risk_score: number
+          flagged_transactions_count?: number
+          fraud_attempts_count?: number
+          id?: string
+          location_risk_score: number
+          overall_risk_score: number
+          transaction_risk_score: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          behavior_risk_score?: number
+          calculated_at?: string
+          created_at?: string
+          device_risk_score?: number
+          flagged_transactions_count?: number
+          fraud_attempts_count?: number
+          id?: string
+          location_risk_score?: number
+          overall_risk_score?: number
+          transaction_risk_score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      security_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          description: string
+          id: string
+          related_transaction_id: string | null
+          severity: string
+          status: string
+          timestamp: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          description: string
+          id?: string
+          related_transaction_id?: string | null
+          severity: string
+          status?: string
+          timestamp?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          description?: string
+          id?: string
+          related_transaction_id?: string | null
+          severity?: string
+          status?: string
+          timestamp?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_alerts_related_transaction_id_fkey"
+            columns: ["related_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_tips: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          id: string
+          priority: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string
+          id?: string
+          priority?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          priority?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          card_last4: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          currency: string
+          device_info: Json | null
+          id: string
+          ip_address: string | null
+          merchant: string
+          payment_method: string
+          risk_score: number
+          status: string
+          timestamp: string
+          transaction_number: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          card_last4?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string
+          device_info?: Json | null
+          id?: string
+          ip_address?: string | null
+          merchant: string
+          payment_method: string
+          risk_score: number
+          status: string
+          timestamp?: string
+          transaction_number?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          card_last4?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          currency?: string
+          device_info?: Json | null
+          id?: string
+          ip_address?: string | null
+          merchant?: string
+          payment_method?: string
+          risk_score?: number
+          status?: string
+          timestamp?: string
+          transaction_number?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          id: string
+          location_tracking_enabled: boolean
+          login_alerts_enabled: boolean
+          notification_email: boolean
+          notification_push: boolean
+          notification_sms: boolean
+          security_level: string
+          transaction_alerts_enabled: boolean
+          two_factor_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_tracking_enabled?: boolean
+          login_alerts_enabled?: boolean
+          notification_email?: boolean
+          notification_push?: boolean
+          notification_sms?: boolean
+          security_level?: string
+          transaction_alerts_enabled?: boolean
+          two_factor_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_tracking_enabled?: boolean
+          login_alerts_enabled?: boolean
+          notification_email?: boolean
+          notification_push?: boolean
+          notification_sms?: boolean
+          security_level?: string
+          transaction_alerts_enabled?: boolean
+          two_factor_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

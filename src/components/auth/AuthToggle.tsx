@@ -1,5 +1,7 @@
 
 import React from "react";
+import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface AuthToggleProps {
   isLogin: boolean;
@@ -13,9 +15,16 @@ const AuthToggle: React.FC<AuthToggleProps> = ({ isLogin, onToggle }) => {
         {isLogin ? "Don't have an account?" : "Already have an account?"}
         <button
           onClick={onToggle}
-          className="ml-1 text-primary hover:underline focus:outline-none"
+          className="ml-1 text-primary hover:underline focus:outline-none group flex items-center inline-flex"
         >
-          {isLogin ? "Sign Up" : "Login"}
+          <span>{isLogin ? "Sign Up" : "Login"}</span>
+          <motion.span 
+            initial={{ x: 0, opacity: 0 }}
+            whileHover={{ x: 5, opacity: 1 }}
+            className="inline-block ml-1"
+          >
+            <ArrowRight className="h-3 w-3" />
+          </motion.span>
         </button>
       </p>
     </div>

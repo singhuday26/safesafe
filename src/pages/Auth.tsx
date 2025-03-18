@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SecurityTipAlert from "@/components/SecurityTipAlert";
@@ -8,15 +8,31 @@ import { showSecurityTipNotification } from "@/services/SecurityTipsService";
 import AuthContainer from "@/components/auth/AuthContainer";
 import AuthForm from "@/components/auth/AuthForm";
 import AuthToggle from "@/components/auth/AuthToggle";
+import { toast } from "sonner";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState<any>(null);
   const [showTip, setShowTip] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { toast: uiToast } = useToast();
+
+  // Check if we're in a password reset flow
+  const isReset = searchParams.get("reset") === "true";
+  const isRecovery = searchParams.get("type") === "recovery";
 
   useEffect(() => {
+    // Show reset password UI if needed
+    if (isReset || isRecovery) {
+      setIsLogin(true);
+      toast.info("Password Reset", {
+        description: "Enter your email and new password to reset your password"
+      });
+    }
+
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
@@ -24,6 +40,7 @@ const Auth = () => {
       }
     });
 
+    // Set up auth state change subscription
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -36,7 +53,7 @@ const Auth = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, isReset, isRecovery]);
 
   const handleAuthSuccess = () => {
     setShowTip(true);

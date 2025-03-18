@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 interface AuthFormProps {
   isLogin: boolean;
@@ -23,17 +24,33 @@ const AuthForm: React.FC<AuthFormProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+  const { toast: uiToast } = useToast();
+
+  const validateForm = () => {
+    if (!email) {
+      setError("Email is required");
+      return false;
+    }
+    
+    if (!password) {
+      setError("Password is required");
+      return false;
+    }
+    
+    if (!isLogin && password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+    
+    setError(null);
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast({
-        title: "All fields are required",
-        description: "Please fill in all the required fields.",
-        variant: "destructive",
-      });
+    if (!validateForm()) {
       return;
     }
     
@@ -42,38 +59,62 @@ const AuthForm: React.FC<AuthFormProps> = ({
       
       if (isLogin) {
         // Login
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
         if (error) throw error;
         
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
+        toast.success("Login successful", {
+          description: "Welcome back!"
         });
       } else {
         // Sign up
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              first_name: "",
+              last_name: ""
+            }
+          }
         });
         
         if (error) throw error;
         
-        toast({
-          title: "Sign up successful",
-          description: "Please check your email to confirm your account.",
+        if (data.user?.identities?.length === 0) {
+          setError("This email is already registered. Please login instead.");
+          setLoading(false);
+          return;
+        }
+        
+        toast.success("Sign up successful", {
+          description: "Please check your email to confirm your account."
         });
       }
       
       onSuccess();
     } catch (error: any) {
-      toast({
-        title: "Authentication error",
-        description: error.message,
-        variant: "destructive",
+      console.error("Authentication error:", error.message);
+      
+      // Handle specific error messages
+      let errorMessage = "Authentication failed";
+      
+      if (error.message.includes("Email not confirmed")) {
+        errorMessage = "Please check your email to confirm your account";
+      } else if (error.message.includes("Invalid login credentials")) {
+        errorMessage = "Invalid email or password";
+      } else if (error.message.includes("User already registered")) {
+        errorMessage = "This email is already registered";
+      } else {
+        errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      toast.error("Authentication error", {
+        description: errorMessage
       });
     } finally {
       setLoading(false);
@@ -82,6 +123,12 @@ const AuthForm: React.FC<AuthFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {error && (
+        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md text-sm">
+          {error}
+        </div>
+      )}
+      
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <div className="relative">
@@ -123,9 +170,37 @@ const AuthForm: React.FC<AuthFormProps> = ({
       
       {isLogin && (
         <div className="text-right">
-          <a href="#" className="text-sm text-primary hover:underline">
+          <button 
+            type="button" 
+            className="text-sm text-primary hover:underline" 
+            onClick={async () => {
+              if (!email) {
+                setError("Please enter your email to reset password");
+                return;
+              }
+
+              setLoading(true);
+              try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                  redirectTo: `${window.location.origin}/auth?reset=true`,
+                });
+                
+                if (error) throw error;
+                
+                toast.success("Password reset email sent", {
+                  description: "Check your inbox for instructions"
+                });
+              } catch (error: any) {
+                toast.error("Failed to send reset email", {
+                  description: error.message
+                });
+              } finally {
+                setLoading(false);
+              }
+            }}
+          >
             Forgot password?
-          </a>
+          </button>
         </div>
       )}
       
