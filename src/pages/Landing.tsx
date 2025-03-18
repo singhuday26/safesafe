@@ -1,274 +1,369 @@
 
 import React from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { FadeIn, SlideInFromRight } from "@/components/animations/FadeIn";
-import { Link } from "react-router-dom";
-import { Shield, ChevronRight, BarChart2, CreditCard, Lock, Globe, PieChart, TrendingUp, CheckCircle } from "lucide-react";
-import SecurityTipAlert from "@/components/SecurityTipAlert";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Shield, Lock, CheckCircle, CreditCard, Bell, Zap, BarChart3, Users } from "lucide-react";
+import { FadeIn } from "@/components/animations/FadeIn";
+import SafeSafeLogo from "@/components/SafeSafeLogo";
 
 const Landing = () => {
-  const features = [
-    {
-      icon: <Shield className="h-6 w-6 text-primary" />,
-      title: "Advanced Fraud Protection",
-      description: "AI-powered detection systems that identify and prevent fraudulent transactions in real-time."
-    },
-    {
-      icon: <BarChart2 className="h-6 w-6 text-indigo-500" />,
-      title: "Real-time Analytics",
-      description: "Comprehensive dashboards providing instant insights into transaction patterns and risk factors."
-    },
-    {
-      icon: <CreditCard className="h-6 w-6 text-teal-500" />,
-      title: "Transaction Monitoring",
-      description: "Continuously track and analyze every transaction for suspicious activities and patterns."
-    },
-    {
-      icon: <Lock className="h-6 w-6 text-orange-500" />,
-      title: "Secure Authentication",
-      description: "Multi-factor authentication and biometric verification to ensure only authorized access."
-    }
-  ];
-
-  const testimonials = [
-    {
-      quote: "SecuraSentry has transformed our approach to fraud management, reducing our fraud losses by 68% in just three months.",
-      author: "Sarah J.",
-      role: "Chief Security Officer",
-      company: "FinTech Global"
-    },
-    {
-      quote: "The real-time alerts and intuitive dashboard have made my team significantly more efficient at detecting and preventing fraudulent activities.",
-      author: "Michael T.",
-      role: "Fraud Prevention Manager",
-      company: "Commerce Bank"
-    },
-    {
-      quote: "We've been able to scale our operations without compromising on security, thanks to SecuraSentry's robust platform.",
-      author: "Elena R.",
-      role: "CTO",
-      company: "PayNow Solutions"
-    }
-  ];
+  const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 pt-32 pb-16 md:pt-40 md:pb-24">
-        <div className="absolute inset-0 bg-grid-pattern opacity-[0.3] pointer-events-none"></div>
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-primary/20 via-indigo-400/20 to-purple-500/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gradient-to-tr from-teal-400/20 via-indigo-500/20 to-primary/20 rounded-full blur-3xl"></div>
-        
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">
-              Intelligent Fraud Detection
-            </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-indigo-600 to-purple-700 text-transparent bg-clip-text">
-              Protect Your Business with AI-Powered Fraud Detection
-            </h1>
-            <p className="text-lg md:text-xl text-slate-700 mb-8 max-w-2xl mx-auto">
-              SecuraSentry provides real-time transaction monitoring and advanced analytics to protect your business from fraud and financial crimes.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="px-8 shadow-md hover:shadow-lg">
-                Get Started <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="lg" className="border-slate-300">
-                Watch Demo
-              </Button>
-            </div>
+    <div className="min-h-screen w-full bg-white">
+      {/* Navigation */}
+      <header className="px-6 lg:px-10 py-4 border-b border-gray-100 bg-white sticky top-0 z-10 backdrop-blur-sm bg-white/60">
+        <div className="container mx-auto flex justify-between items-center">
+          <SafeSafeLogo size="lg" />
+          
+          <div className="hidden md:flex items-center space-x-6">
+            <nav className="space-x-6">
+              <Link to="#features" className="text-gray-600 hover:text-primary transition-colors">Features</Link>
+              <Link to="#testimonials" className="text-gray-600 hover:text-primary transition-colors">Testimonials</Link>
+              <Link to="#pricing" className="text-gray-600 hover:text-primary transition-colors">Pricing</Link>
+            </nav>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/auth">Login</Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link to="/auth">Start Free Trial</Link>
+            </Button>
           </div>
+          
+          <Button variant="ghost" size="icon" className="md:hidden">
+            <span className="sr-only">Open menu</span>
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </Button>
         </div>
-        
-        <div className="container mx-auto px-6 mt-16 md:mt-24">
-          <div className="bg-white/80 backdrop-blur-md border border-slate-200 rounded-xl shadow-xl p-6 max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-4 flex items-center">
-                <TrendingUp className="h-10 w-10 text-teal-500 mr-4" />
-                <div>
-                  <h3 className="font-semibold text-slate-900">99.8%</h3>
-                  <p className="text-sm text-slate-600">Fraud Detection Accuracy</p>
-                </div>
-              </div>
-              <div className="p-4 flex items-center">
-                <Globe className="h-10 w-10 text-indigo-500 mr-4" />
-                <div>
-                  <h3 className="font-semibold text-slate-900">Global Coverage</h3>
-                  <p className="text-sm text-slate-600">Operating in 120+ Countries</p>
-                </div>
-              </div>
-              <div className="p-4 flex items-center">
-                <PieChart className="h-10 w-10 text-orange-500 mr-4" />
-                <div>
-                  <h3 className="font-semibold text-slate-900">68% Reduction</h3>
-                  <p className="text-sm text-slate-600">In Fraud-Related Losses</p>
-                </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 pt-20 pb-24 md:pt-28 md:pb-32">
+        <div className="container mx-auto px-6 lg:px-8">
+          <FadeIn>
+            <div className="max-w-4xl mx-auto text-center">
+              <SafeSafeLogo size="xl" className="mx-auto mb-6" />
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-700 via-primary to-indigo-600 mb-6">
+                Protect Your Financial Future with SafeSafe
+              </h1>
+              <p className="text-lg md:text-xl text-slate-700 mb-10 max-w-3xl mx-auto">
+                Advanced fraud detection and financial protection for individuals and businesses. Stay one step ahead of threats with real-time monitoring and smart alerts.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" className="px-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" onClick={() => navigate("/auth")}>
+                  Start Free Trial
+                </Button>
+                <Button size="lg" variant="outline" className="px-8" onClick={() => navigate("/auth")}>
+                  See Demo
+                </Button>
               </div>
             </div>
-          </div>
+          </FadeIn>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-indigo-100 text-indigo-700 border-indigo-200 hover:bg-indigo-200">
-              Our Platform
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900">Comprehensive Fraud Protection</h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Our advanced platform combines AI, machine learning, and expert analysis to provide unmatched security for your financial transactions.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="border-slate-200 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="pt-6">
-                  <div className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-100 mb-5">
-                    {feature.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold mb-2 text-slate-900">{feature.title}</h3>
-                  <p className="text-slate-600">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Security Tip Section */}
-      <section className="py-16 bg-gradient-to-br from-slate-50 to-indigo-50">
-        <div className="container mx-auto px-6">
-          <div className="max-w-3xl mx-auto">
-            <SecurityTipAlert className="mb-0" />
-          </div>
+      <section id="features" className="py-20 bg-white">
+        <div className="container mx-auto px-6 lg:px-8">
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Comprehensive Security Features</h2>
+              <p className="text-lg text-slate-600 max-w-3xl mx-auto">
+                SafeSafe provides enterprise-grade security features to protect your financial data and transactions around the clock.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="featured-card bg-gradient-to-br from-slate-50 to-blue-50 p-6 rounded-xl border border-slate-100">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-5">
+                  <Shield className="text-primary h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Real-time Fraud Detection</h3>
+                <p className="text-slate-600">Continuously monitor transactions and activity patterns to identify and prevent fraudulent actions before they impact you.</p>
+              </div>
+              
+              <div className="featured-card bg-gradient-to-br from-slate-50 to-blue-50 p-6 rounded-xl border border-slate-100">
+                <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-5">
+                  <Bell className="text-amber-600 h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Instant Alerts</h3>
+                <p className="text-slate-600">Receive immediate notifications about suspicious activities through multiple channels including email, SMS, and push notifications.</p>
+              </div>
+              
+              <div className="featured-card bg-gradient-to-br from-slate-50 to-blue-50 p-6 rounded-xl border border-slate-100">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-5">
+                  <CreditCard className="text-green-600 h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Payment Protection</h3>
+                <p className="text-slate-600">Secure all your payment methods with advanced encryption and verification protocols that meet industry standards.</p>
+              </div>
+              
+              <div className="featured-card bg-gradient-to-br from-slate-50 to-blue-50 p-6 rounded-xl border border-slate-100">
+                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-5">
+                  <BarChart3 className="text-indigo-600 h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Risk Analytics</h3>
+                <p className="text-slate-600">Gain insights into your security posture with comprehensive risk scoring and detailed analytical reports.</p>
+              </div>
+              
+              <div className="featured-card bg-gradient-to-br from-slate-50 to-blue-50 p-6 rounded-xl border border-slate-100">
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-5">
+                  <Lock className="text-purple-600 h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Multi-factor Authentication</h3>
+                <p className="text-slate-600">Add extra layers of security to your account with customizable authentication options including biometrics and authenticator apps.</p>
+              </div>
+              
+              <div className="featured-card bg-gradient-to-br from-slate-50 to-blue-50 p-6 rounded-xl border border-slate-100">
+                <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center mb-5">
+                  <Users className="text-rose-600 h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Team Access Controls</h3>
+                <p className="text-slate-600">Manage permissions and access levels for team members with granular controls and detailed audit logs.</p>
+              </div>
+            </div>
+          </FadeIn>
         </div>
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-teal-100 text-teal-700 border-teal-200 hover:bg-teal-200">
-              Testimonials
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-slate-900">Trusted by Industry Leaders</h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              See what our clients are saying about SecuraSentry's fraud detection platform.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <Card key={index} className="border-slate-200 hover:shadow-md transition-all">
-                <CardContent className="pt-6">
-                  <div className="mb-4 text-amber-500 flex">
-                    {[...Array(5)].map((_, i) => (
-                      <svg key={i} xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
-                  <p className="italic text-slate-700 mb-4">"{testimonial.quote}"</p>
+      <section id="testimonials" className="py-20 bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="container mx-auto px-6 lg:px-8">
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Trusted by Thousands</h2>
+              <p className="text-lg text-slate-600 max-w-3xl mx-auto">
+                Hear from our users about how SafeSafe has transformed their approach to financial security.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="bg-white p-6 rounded-xl shadow-sm">
+                <div className="flex items-center mb-4">
+                  <div className="h-12 w-12 rounded-full bg-gray-200 mr-4"></div>
                   <div>
-                    <p className="font-semibold text-slate-900">{testimonial.author}</p>
-                    <p className="text-sm text-slate-600">{testimonial.role}, {testimonial.company}</p>
+                    <h4 className="font-semibold">Sarah Johnson</h4>
+                    <p className="text-sm text-gray-500">Small Business Owner</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+                <p className="text-slate-600">"SafeSafe has given me peace of mind knowing my business transactions are protected. The real-time alerts have saved us from several fraudulent attempts."</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-xl shadow-sm">
+                <div className="flex items-center mb-4">
+                  <div className="h-12 w-12 rounded-full bg-gray-200 mr-4"></div>
+                  <div>
+                    <h4 className="font-semibold">Michael Chen</h4>
+                    <p className="text-sm text-gray-500">Financial Analyst</p>
+                  </div>
+                </div>
+                <p className="text-slate-600">"The analytical capabilities of SafeSafe are impressive. I can track security metrics and identify potential vulnerabilities before they become problems."</p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-xl shadow-sm">
+                <div className="flex items-center mb-4">
+                  <div className="h-12 w-12 rounded-full bg-gray-200 mr-4"></div>
+                  <div>
+                    <h4 className="font-semibold">Emma Rodriguez</h4>
+                    <p className="text-sm text-gray-500">Personal Banking</p>
+                  </div>
+                </div>
+                <p className="text-slate-600">"After experiencing identity theft, I switched to SafeSafe. Their multi-factor authentication and constant monitoring has made me feel secure again."</p>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 bg-white">
+        <div className="container mx-auto px-6 lg:px-8">
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+              <p className="text-lg text-slate-600 max-w-3xl mx-auto">
+                Choose the plan that fits your needs with no hidden fees or surprises.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              <div className="border border-slate-200 rounded-xl p-6 bg-white">
+                <h3 className="text-xl font-semibold mb-2">Basic</h3>
+                <p className="text-slate-600 mb-4">Personal protection essentials</p>
+                <div className="mb-4">
+                  <span className="text-3xl font-bold">$9</span>
+                  <span className="text-slate-500">/month</span>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>Basic fraud monitoring</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>Email alerts</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>Monthly security reports</span>
+                  </li>
+                </ul>
+                <Button className="w-full" variant="outline">Get Started</Button>
+              </div>
+              
+              <div className="border-2 border-primary rounded-xl p-6 bg-white relative">
+                <div className="absolute top-0 transform -translate-y-1/2 bg-primary text-white px-4 py-1 rounded-full text-sm font-medium">
+                  Most Popular
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Pro</h3>
+                <p className="text-slate-600 mb-4">Advanced protection for individuals</p>
+                <div className="mb-4">
+                  <span className="text-3xl font-bold">$29</span>
+                  <span className="text-slate-500">/month</span>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>Real-time fraud monitoring</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>SMS, email & push notifications</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>Multi-factor authentication</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>Weekly security reports</span>
+                  </li>
+                </ul>
+                <Button className="w-full">Get Started</Button>
+              </div>
+              
+              <div className="border border-slate-200 rounded-xl p-6 bg-white">
+                <h3 className="text-xl font-semibold mb-2">Enterprise</h3>
+                <p className="text-slate-600 mb-4">Complete solution for businesses</p>
+                <div className="mb-4">
+                  <span className="text-3xl font-bold">$99</span>
+                  <span className="text-slate-500">/month</span>
+                </div>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>Enterprise-grade security</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>Team access controls</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>API integration</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>Custom analytics dashboard</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
+                    <span>Priority support</span>
+                  </li>
+                </ul>
+                <Button className="w-full" variant="outline">Contact Sales</Button>
+              </div>
+            </div>
+          </FadeIn>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-primary/90 via-indigo-600/90 to-purple-700/90 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Secure Your Business?</h2>
-            <p className="text-lg mb-8 text-white/90">
-              Join thousands of businesses that trust SecuraSentry for their fraud detection and prevention needs.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90">
-                Start Free Trial
-              </Button>
-              <Button variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
-                Contact Sales
-              </Button>
+      <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div className="container mx-auto px-6 lg:px-8">
+          <FadeIn>
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to secure your financial future?</h2>
+              <p className="text-lg text-blue-100 mb-8">
+                Join thousands of users who trust SafeSafe to protect their financial data and transactions.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50" onClick={() => navigate("/auth")}>
+                  Start Free Trial
+                </Button>
+                <Button size="lg" variant="outline" className="text-white border-white hover:bg-blue-600">
+                  Schedule Demo
+                </Button>
+              </div>
             </div>
-          </div>
+          </FadeIn>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-12">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+      <footer className="bg-slate-900 text-slate-300 py-12">
+        <div className="container mx-auto px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Shield className="h-6 w-6 text-white" />
-                <span className="font-semibold text-xl text-white">SecuraSentry</span>
-              </div>
-              <p className="text-sm">
-                Protecting businesses with advanced AI-powered fraud detection and prevention solutions.
+              <SafeSafeLogo size="lg" className="text-white mb-4" />
+              <p className="text-slate-400 mb-4">
+                Advanced fraud detection and financial protection for everyone.
               </p>
+              <div className="flex space-x-4">
+                <a href="#" className="text-slate-400 hover:text-white transition-colors">
+                  <span className="sr-only">Twitter</span>
+                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                  </svg>
+                </a>
+                <a href="#" className="text-slate-400 hover:text-white transition-colors">
+                  <span className="sr-only">LinkedIn</span>
+                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fillRule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clipRule="evenodd" />
+                  </svg>
+                </a>
+              </div>
             </div>
+            
             <div>
-              <h4 className="font-semibold text-white mb-4">Company</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white">About</a></li>
-                <li><a href="#" className="hover:text-white">Careers</a></li>
-                <li><a href="#" className="hover:text-white">Blog</a></li>
-                <li><a href="#" className="hover:text-white">Press</a></li>
+              <h3 className="text-white text-lg font-medium mb-4">Product</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Enterprise</a></li>
               </ul>
             </div>
+            
             <div>
-              <h4 className="font-semibold text-white mb-4">Product</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white">Features</a></li>
-                <li><a href="#" className="hover:text-white">Pricing</a></li>
-                <li><a href="#" className="hover:text-white">Security</a></li>
-                <li><a href="#" className="hover:text-white">Enterprise</a></li>
+              <h3 className="text-white text-lg font-medium mb-4">Resources</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Guides</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
               </ul>
             </div>
+            
             <div>
-              <h4 className="font-semibold text-white mb-4">Resources</h4>
-              <ul className="space-y-2 text-sm">
-                <li><a href="#" className="hover:text-white">Documentation</a></li>
-                <li><a href="#" className="hover:text-white">API Reference</a></li>
-                <li><a href="#" className="hover:text-white">Support</a></li>
-                <li><Link to="/auth" className="hover:text-white">Sign In</Link></li>
+              <h3 className="text-white text-lg font-medium mb-4">Company</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Press</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-sm">© 2023 SecuraSentry. All rights reserved.</p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-slate-400 hover:text-white">
-                <span className="sr-only">Twitter</span>
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                </svg>
-              </a>
-              <a href="#" className="text-slate-400 hover:text-white">
-                <span className="sr-only">GitHub</span>
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
-                </svg>
-              </a>
-              <a href="#" className="text-slate-400 hover:text-white">
-                <span className="sr-only">LinkedIn</span>
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fillRule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clipRule="evenodd" />
-                </svg>
-              </a>
+          
+          <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-slate-400">© 2023 SafeSafe, Inc. All rights reserved.</p>
+            <div className="mt-4 md:mt-0 flex space-x-6">
+              <a href="#" className="text-slate-400 hover:text-white transition-colors">Privacy</a>
+              <a href="#" className="text-slate-400 hover:text-white transition-colors">Terms</a>
+              <a href="#" className="text-slate-400 hover:text-white transition-colors">Cookies</a>
             </div>
           </div>
         </div>

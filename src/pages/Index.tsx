@@ -12,6 +12,7 @@ import SecurityTipAlert from "@/components/SecurityTipAlert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Bell, Settings, FileText, TrendingUp } from "lucide-react";
+import SafeSafeLogo from "@/components/SafeSafeLogo";
 
 const Index = () => {
   const { user, isLoading } = useAuth();
@@ -54,6 +55,9 @@ const Index = () => {
         <FadeIn>
           <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
             <div>
+              <div className="flex items-center mb-3">
+                <SafeSafeLogo size="lg" />
+              </div>
               <h1 className="text-3xl font-bold mb-2 text-gray-900">{greeting}, {userName}!</h1>
               <p className="text-muted-foreground mb-2">
                 Welcome to your security dashboard. Here's your latest overview.

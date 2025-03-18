@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProfileSettings from "./pages/ProfileSettings";
+import SecuritySettings from "./pages/SecuritySettings";
 import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient({
@@ -93,6 +94,12 @@ const AppRoutes = () => {
       <Route path="/profile/settings" element={
         <ProtectedRoute>
           <ProfileSettings />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/security/settings" element={
+        <ProtectedRoute>
+          <SecuritySettings />
         </ProtectedRoute>
       } />
       

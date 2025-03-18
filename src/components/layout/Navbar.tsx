@@ -1,100 +1,169 @@
 
-import React from "react";
-import { Shield, LogOut, Bell, Search } from "lucide-react";
-import { FadeIn } from "../animations/FadeIn";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { getProfileSummary } from "@/services/ProfileService";
+import { useQuery } from "@tanstack/react-query";
+import { 
+  Bell, 
+  Settings, 
+  LogOut, 
+  Menu, 
+  X,
+  FileText,
+  Shield,
+  User
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import SafeSafeLogo from "@/components/SafeSafeLogo";
 
-const Navbar: React.FC = () => {
+const Navbar = () => {
   const { user, signOut } = useAuth();
-  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  const { data: profileName } = useQuery({
+    queryKey: ['profileSummary'],
+    queryFn: getProfileSummary,
+    enabled: !!user,
+  });
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Signed out successfully",
-        description: "You have been signed out of your account.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error signing out",
-        description: "There was a problem signing you out.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Get initials from user email
-  const getUserInitials = () => {
-    if (!user?.email) return "U";
-    const parts = user.email.split("@")[0].split(".");
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return user.email.substring(0, 2).toUpperCase();
+    await signOut();
+    navigate('/auth');
   };
 
   return (
-    <FadeIn>
-      <header className="fixed top-0 left-0 right-0 z-50 px-6 glass-morphism">
-        <div className="w-full max-w-7xl mx-auto flex items-center justify-between h-16">
-          <div className="flex items-center space-x-2">
-            <Shield className="h-6 w-6 text-primary" />
-            <span className="font-semibold text-xl">SecuraSentry</span>
+    <nav className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-slate-200">
+      <div className="container mx-auto px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <SafeSafeLogo size="md" />
+          </Link>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-6">
+            <Link to="/" className="text-slate-700 hover:text-primary transition-colors">Dashboard</Link>
+            <Link to="/reports" className="text-slate-700 hover:text-primary transition-colors">Reports</Link>
+            <Link to="/alerts" className="text-slate-700 hover:text-primary transition-colors">Alerts</Link>
+            <Link to="/security/settings" className="text-slate-700 hover:text-primary transition-colors">Security</Link>
           </div>
           
-          <div className="hidden md:flex relative mx-auto max-w-md w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search transactions..."
-              className="w-full h-9 pl-10 pr-4 rounded-md bg-muted/50 border border-border focus:outline-none focus:ring-1 focus:ring-primary"
-            />
-          </div>
-          
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#" className="text-sm font-medium hover:text-primary click-bounce">Dashboard</a>
-            <a href="#" className="text-sm font-medium text-muted-foreground hover:text-primary click-bounce">Transactions</a>
-            <a href="#" className="text-sm font-medium text-muted-foreground hover:text-primary click-bounce">Reports</a>
-            <a href="#" className="text-sm font-medium text-muted-foreground hover:text-primary click-bounce">Settings</a>
-          </nav>
-          
-          <div className="flex items-center space-x-4">
-            <button className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center hover:bg-muted click-bounce relative">
-              <Bell className="h-4 w-4" />
-              <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-primary"></span>
-            </button>
+          {/* User Actions */}
+          <div className="hidden md:flex items-center space-x-3">
+            <Button variant="outline" size="icon" className="relative">
+              <Bell className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">3</span>
+            </Button>
             
-            <div className="relative group">
-              <Avatar className="cursor-pointer ring-2 ring-offset-2 ring-offset-background ring-primary/10">
-                <AvatarImage src={user?.user_metadata?.avatar_url} />
-                <AvatarFallback className="bg-primary/10 text-primary">
-                  {getUserInitials()}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-popover border border-border invisible group-hover:visible transition-all duration-200 opacity-0 group-hover:opacity-100 z-50">
-                <div className="px-4 py-2 border-b border-border">
-                  <p className="text-sm font-medium truncate">{user?.email}</p>
-                  <p className="text-xs text-muted-foreground">User</p>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start px-4 py-2 text-sm text-destructive hover:text-destructive"
-                  onClick={handleSignOut}
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="px-3">
+                  <span className="mr-2">{profileName || 'User'}</span>
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    {profileName?.[0]?.toUpperCase() || 'U'}
+                  </div>
                 </Button>
-              </div>
-            </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate('/profile/settings')}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/security/settings')}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  <span>Security Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Bell className="mr-2 h-4 w-4" />
+                  <span>Notifications</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <FileText className="mr-2 h-4 w-4" />
+                  <span>Activity Log</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+          
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden text-slate-700"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
-      </header>
-    </FadeIn>
+        
+        {/* Mobile Menu */}
+        {isMenuOpen && (
+          <div className="md:hidden pt-4 pb-3 space-y-2">
+            <Link 
+              to="/" 
+              className="block py-2 text-slate-700 hover:text-primary transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Dashboard
+            </Link>
+            <Link 
+              to="/reports" 
+              className="block py-2 text-slate-700 hover:text-primary transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Reports
+            </Link>
+            <Link 
+              to="/alerts" 
+              className="block py-2 text-slate-700 hover:text-primary transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Alerts
+            </Link>
+            <Link 
+              to="/security/settings" 
+              className="block py-2 text-slate-700 hover:text-primary transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Security
+            </Link>
+            <Link 
+              to="/profile/settings" 
+              className="block py-2 text-slate-700 hover:text-primary transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Profile
+            </Link>
+            <Button 
+              variant="ghost" 
+              className="w-full justify-start pl-0" 
+              onClick={() => {
+                handleSignOut();
+                setIsMenuOpen(false);
+              }}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </Button>
+          </div>
+        )}
+      </div>
+    </nav>
   );
 };
 
