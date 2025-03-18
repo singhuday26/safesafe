@@ -6,14 +6,24 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { useAuth } from "@/context/AuthContext";
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import { generateInitialDemoData } from "@/services/ProfileService";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import ProfileSettings from "./pages/ProfileSettings";
-import SecuritySettings from "./pages/SecuritySettings";
-import Landing from "./pages/Landing";
+import ErrorBoundary from "@/components/ErrorBoundary";
+
+// Use lazy loading for pages to improve performance
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
+const SecuritySettings = lazy(() => import("./pages/SecuritySettings"));
+const Landing = lazy(() => import("./pages/Landing"));
+
+// Create a loading component for Suspense
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-pulse text-primary">Loading...</div>
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -73,54 +83,58 @@ const AppRoutes = () => {
   const { user } = useAuth();
   
   return (
-    <Routes>
-      {/* Landing page route - shown to non-authenticated users */}
-      <Route path="/" element={
-        user ? (
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* Landing page route - shown to non-authenticated users */}
+        <Route path="/" element={
+          user ? (
+            <ProtectedRoute>
+              <Index />
+            </ProtectedRoute>
+          ) : (
+            <Landing />
+          )
+        } />
+        
+        <Route path="/auth" element={
+          <PublicRoute>
+            <Auth />
+          </PublicRoute>
+        } />
+        
+        <Route path="/profile/settings" element={
           <ProtectedRoute>
-            <Index />
+            <ProfileSettings />
           </ProtectedRoute>
-        ) : (
-          <Landing />
-        )
-      } />
-      
-      <Route path="/auth" element={
-        <PublicRoute>
-          <Auth />
-        </PublicRoute>
-      } />
-      
-      <Route path="/profile/settings" element={
-        <ProtectedRoute>
-          <ProfileSettings />
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/security/settings" element={
-        <ProtectedRoute>
-          <SecuritySettings />
-        </ProtectedRoute>
-      } />
-      
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        } />
+        
+        <Route path="/security/settings" element={
+          <ProtectedRoute>
+            <SecuritySettings />
+          </ProtectedRoute>
+        } />
+        
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

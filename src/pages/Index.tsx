@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { FadeIn } from "@/components/animations/FadeIn";
 import Navbar from "@/components/layout/Navbar";
-import FraudDetectionDashboard from "@/components/dashboard/FraudDetectionDashboard";
 import { useAuth } from "@/context/AuthContext";
 import { Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -13,13 +12,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Bell, Settings, FileText, TrendingUp } from "lucide-react";
 import SafeSafeLogo from "@/components/SafeSafeLogo";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Skeleton } from "@/components/ui/skeleton";
+import DashboardSkeleton from "@/components/skeletons/DashboardSkeleton";
+
+// Lazy load the dashboard component to improve initial load performance
+const FraudDetectionDashboard = lazy(() => 
+  import("@/components/dashboard/FraudDetectionDashboard")
+);
 
 const Index = () => {
   const { user, isLoading } = useAuth();
   const [greeting, setGreeting] = useState("Good day");
+  const isMobile = useIsMobile();
+  
+  // Initialize session timeout for security (15 minutes)
+  useSessionTimeout({
+    timeoutMinutes: 15,
+    warningMinutes: 2
+  });
 
   // Fetch user profile
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading: isProfileLoading } = useQuery({
     queryKey: ['profile'],
     queryFn: fetchProfile,
     enabled: !!user,
@@ -56,26 +71,35 @@ const Index = () => {
           <div className="flex flex-col md:flex-row justify-between items-start mb-8 gap-4">
             <div>
               <div className="flex items-center mb-3">
-                <SafeSafeLogo size="lg" />
+                <SafeSafeLogo size={isMobile ? "md" : "lg"} />
               </div>
-              <h1 className="text-3xl font-bold mb-2 text-gray-900">{greeting}, {userName}!</h1>
+              <h1 className="text-2xl md:text-3xl font-bold mb-2 text-gray-900">{greeting}, {userName}!</h1>
               <p className="text-muted-foreground mb-2">
                 Welcome to your security dashboard. Here's your latest overview.
               </p>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="hidden md:flex">
-                <FileText className="mr-2 h-4 w-4" />
-                Reports
-              </Button>
-              <Button variant="outline" size="sm" className="hidden md:flex">
-                <Bell className="mr-2 h-4 w-4" />
-                Alerts
-              </Button>
-              <Button size="sm">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Button>
+            <div className="flex flex-wrap gap-2 w-full md:w-auto">
+              {isMobile ? (
+                <Button size="sm" className="w-full">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Button>
+              ) : (
+                <>
+                  <Button variant="outline" size="sm">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Reports
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Bell className="mr-2 h-4 w-4" />
+                    Alerts
+                  </Button>
+                  <Button size="sm">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Button>
+                </>
+              )}
             </div>
           </div>
           
@@ -157,7 +181,9 @@ const Index = () => {
             </Card>
           </div>
           
-          <FraudDetectionDashboard />
+          <Suspense fallback={<DashboardSkeleton />}>
+            <FraudDetectionDashboard />
+          </Suspense>
         </FadeIn>
       </main>
     </div>
