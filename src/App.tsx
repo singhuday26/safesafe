@@ -12,6 +12,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProfileSettings from "./pages/ProfileSettings";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,20 +49,53 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Public route component that redirects authenticated users to the dashboard
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-pulse text-primary">Loading...</div>
+      </div>
+    );
+  }
+  
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const AppRoutes = () => {
+  const { user } = useAuth();
+  
   return (
     <Routes>
-      <Route path="/auth" element={<Auth />} />
+      {/* Landing page route - shown to non-authenticated users */}
       <Route path="/" element={
-        <ProtectedRoute>
-          <Index />
-        </ProtectedRoute>
+        user ? (
+          <ProtectedRoute>
+            <Index />
+          </ProtectedRoute>
+        ) : (
+          <Landing />
+        )
       } />
+      
+      <Route path="/auth" element={
+        <PublicRoute>
+          <Auth />
+        </PublicRoute>
+      } />
+      
       <Route path="/profile/settings" element={
         <ProtectedRoute>
           <ProfileSettings />
         </ProtectedRoute>
       } />
+      
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>
