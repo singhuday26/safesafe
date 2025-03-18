@@ -40,10 +40,10 @@ const SecurityTipAlert: React.FC<SecurityTipAlertProps> = ({ className }) => {
       <Shield className="h-5 w-5 text-primary" />
       <AlertTitle className="text-primary">Security Tip</AlertTitle>
       <AlertDescription className="mt-2 text-sm">
-        {tip.tip}
-        {tip.source && (
+        {tip.content}
+        {tip.category && (
           <div className="mt-2 text-xs text-muted-foreground">
-            Source: {tip.source}
+            Category: {tip.category}
           </div>
         )}
       </AlertDescription>

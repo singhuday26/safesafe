@@ -1,7 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { SecurityTip } from "@/types/database";
+import { SecurityTip as DBSecurityTip } from "@/types/database";
 import { toast } from "sonner";
+
+// Export the SecurityTip type
+export type SecurityTip = DBSecurityTip;
 
 // Fetch security tips
 export const fetchSecurityTips = async (
@@ -29,7 +32,7 @@ export const fetchSecurityTips = async (
 };
 
 // Fetch a random security tip
-export const fetchRandomSecurityTip = async (): Promise<SecurityTip | null> => {
+export const fetchSecurityTip = async (): Promise<SecurityTip | null> => {
   const { data, error } = await supabase
     .from('security_tips')
     .select('*');
@@ -50,7 +53,7 @@ export const fetchRandomSecurityTip = async (): Promise<SecurityTip | null> => {
 // Show a security tip notification
 export const showSecurityTipNotification = async (): Promise<void> => {
   try {
-    const tip = await fetchRandomSecurityTip();
+    const tip = await fetchSecurityTip();
     
     if (tip) {
       toast.info(tip.title, {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -223,6 +222,10 @@ const FraudDetectionDashboard: React.FC = () => {
       </div>
     </div>
   );
+  
+  const parseTransactionDate = (dateString: string): Date => {
+    return new Date(dateString);
+  };
   
   return (
     <FadeIn className="space-y-6">

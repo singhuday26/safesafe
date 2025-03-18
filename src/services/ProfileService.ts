@@ -36,6 +36,9 @@ export const fetchProfile = async (): Promise<Profile | null> => {
   }
 };
 
+// For backward compatibility, alias getProfile to fetchProfile
+export const getProfile = fetchProfile;
+
 // Update the current user's profile
 export const updateProfile = async (updates: Partial<Profile>): Promise<{ success: boolean; error?: string }> => {
   try {
