@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -17,12 +16,16 @@ import { TimePeriod, getRiskColor, getRiskLevel, formatCurrency, formatDate } fr
 import { Transaction } from "@/types/database";
 import { 
   Activity, AlertTriangle, ArrowDown, ArrowRight, ArrowUp, Bell, Check, 
-  CreditCard, Info, Shield, X
+  CreditCard, Info, Shield, X, Clock
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import TransactionList from "./TransactionList";
+import TransactionCard from "./TransactionCard";
+// Import TransactionsPage from the same folder
+import TransactionsPage from "./TransactionsPage";
 
 const FraudDetectionDashboard: React.FC = () => {
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>("7d");
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>("24h");
   
   const getTimeRangeForPeriod = (): { startDate?: Date, endDate?: Date } => {
     const endDate = new Date();
@@ -50,7 +53,7 @@ const FraudDetectionDashboard: React.FC = () => {
   };
   
   const { startDate, endDate } = getTimeRangeForPeriod();
-  const { transactions, isLoading: isLoadingTransactions } = useTransactions(10, startDate, endDate);
+  const { transactions, isLoading: isLoadingTransactions } = useTransactions(50, startDate, endDate);
   const { riskMetrics, isLoading: isLoadingMetrics } = useRiskMetrics();
   const { alerts, isLoading: isLoadingAlerts } = useSecurityAlerts(5);
   
@@ -303,77 +306,67 @@ const FraudDetectionDashboard: React.FC = () => {
         </Card>
         
         <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div>
               <CardTitle>Transaction Activity</CardTitle>
-              <CardDescription>Recent transactions and their risk assessment</CardDescription>
+              <CardDescription>Monitor your recent transactions and their risk levels</CardDescription>
             </div>
-            
-            <div className="flex gap-2">
-              <Tabs value={timePeriod} onValueChange={(value) => setTimePeriod(value as TimePeriod)} className="w-full">
-                <TabsList className="grid grid-cols-4 w-[260px]">
-                  <TabsTrigger value="24h">24h</TabsTrigger>
-                  <TabsTrigger value="7d">7d</TabsTrigger>
-                  <TabsTrigger value="30d">30d</TabsTrigger>
-                  <TabsTrigger value="all">All</TabsTrigger>
-                </TabsList>
-              </Tabs>
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <select
+                value={timePeriod}
+                onChange={(e) => setTimePeriod(e.target.value as TimePeriod)}
+                className="text-sm bg-transparent border-none focus:ring-0"
+              >
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+                <option value="all">All Time</option>
+              </select>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Transaction</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Risk</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoadingTransactions ? (
-                    Array(5).fill(0).map((_, i) => renderTransactionSkeleton())
-                  ) : transactions.length > 0 ? (
-                    transactions.slice(0, 5).map(transaction => (
-                      <TableRow key={transaction.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="p-2 rounded-full bg-muted">
-                              {getTypeIcon(transaction.type)}
-                            </div>
-                            <div>
-                              <div className="font-medium">{transaction.merchant}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {formatDate(parseTransactionDate(transaction.timestamp))}
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{formatCurrency(transaction.amount, transaction.currency)}</TableCell>
-                        <TableCell>{getStatusBadge(transaction.status)}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className={`h-2 w-2 rounded-full ${getRiskColor(transaction.risk_score).split(' ')[0]}`}></div>
-                            <span className="text-sm">{transaction.risk_score}</span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                        No transactions found for the selected period
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            
-            <Button variant="ghost" className="mt-4 w-full" size="sm">
-              View All Transactions <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <Tabs defaultValue="list" className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="list">List View</TabsTrigger>
+                <TabsTrigger value="cards">Card View</TabsTrigger>
+                {/* New Tab Trigger for Transactions Page */}
+                <TabsTrigger value="page">Page View</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="list" className="space-y-4">
+                {isLoadingTransactions ? (
+                  <div className="space-y-2">
+                    {[...Array(5)].map((_, i) => renderTransactionSkeleton())}
+                  </div>
+                ) : (
+                  <TransactionList transactions={transactions} />
+                )}
+              </TabsContent>
+              
+              <TabsContent value="cards" className="space-y-4">
+                {isLoadingTransactions ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {[...Array(4)].map((_, i) => renderTransactionSkeleton())}
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {transactions.map((transaction, index) => (
+                      <TransactionCard 
+                        key={transaction.id}
+                        transaction={transaction}
+                        delay={index * 0.1}
+                      />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+              
+              {/* New Tab Content for Page View */}
+              <TabsContent value="page" className="space-y-4">
+                <TransactionsPage />
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
         
@@ -385,9 +378,9 @@ const FraudDetectionDashboard: React.FC = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {isLoadingSecurityTips ? (
-                Array(3).fill(0).map((_, i) => (
-                  <div key={i}>{renderSecurityTipSkeleton()}</div>
-                ))
+                Array(3)
+                  .fill(0)
+                  .map((_, i) => <div key={i}>{renderSecurityTipSkeleton()}</div>)
               ) : securityTips && securityTips.length > 0 ? (
                 securityTips.map(tip => (
                   <div key={tip.id} className="border rounded-lg p-4 hover:bg-accent transition-colors duration-200">

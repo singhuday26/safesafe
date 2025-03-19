@@ -1,10 +1,9 @@
-
 import React from "react";
 import { AlertTriangle, CheckCircle, Clock, Search } from "lucide-react";
-import { Transaction, formatCurrency, formatDate, getRiskCategory, getRiskTextColor, getStatusVariant, getTransactionTypeVariant } from "@/utils/mockData";
+import { Transaction } from "@/types/database";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
-import { FadeIn, AnimateChildren } from "../animations/FadeIn";
+import { FadeIn } from "../animations/FadeIn";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -15,8 +14,39 @@ const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
   className
 }) => {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true
+    });
+  };
+
+  const formatCurrency = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency
+    }).format(amount);
+  };
+
+  const getRiskColor = (score: number) => {
+    if (score < 30) return 'text-green-500';
+    if (score < 60) return 'text-yellow-500';
+    return 'text-red-500';
+  };
+
+  if (transactions.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No transactions found
+      </div>
+    );
+  }
+
   return (
-    <FadeIn className={cn("glass-card rounded-xl p-5", className)}>
+    <div className={cn("rounded-xl", className)}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5">
         <h3 className="font-semibold text-lg mb-2 sm:mb-0">Recent Transactions</h3>
         <div className="relative">
@@ -35,75 +65,69 @@ const TransactionList: React.FC<TransactionListProps> = ({
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">ID</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Customer</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Merchant</th>
               <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Amount</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Type</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Payment Method</th>
               <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Status</th>
               <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Risk Score</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Date</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Time</th>
             </tr>
           </thead>
-          <AnimateChildren>
-            <tbody className="divide-y divide-border">
-              {transactions.map((transaction) => (
-                <tr 
-                  key={transaction.id} 
-                  className="opacity-0 animate-fade-in hover:bg-muted/30 transition-colors"
-                >
-                  <td className="py-3 px-4 text-sm">{transaction.id}</td>
-                  <td className="py-3 px-4 text-sm">
-                    <div className="font-medium">{transaction.customer.name}</div>
-                    <div className="text-xs text-muted-foreground">{transaction.customer.email}</div>
-                  </td>
-                  <td className="py-3 px-4 text-sm font-medium">
-                    {formatCurrency(transaction.amount, transaction.currency)}
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge variant={
-                      getTransactionTypeVariant(transaction.type) === "default" ? "default" :
-                      getTransactionTypeVariant(transaction.type) === "success" ? "default" :
-                      getTransactionTypeVariant(transaction.type) === "warning" ? "secondary" :
-                      getTransactionTypeVariant(transaction.type) === "info" ? "default" :
-                      "outline"
-                    }>
-                      {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge variant={
-                      getStatusVariant(transaction.status) === "success" ? "default" :
-                      getStatusVariant(transaction.status) === "warning" ? "secondary" :
-                      getStatusVariant(transaction.status) === "danger" ? "destructive" :
-                      "outline"
-                    }>
-                      {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className={cn(
-                      "text-sm font-medium", 
-                      getRiskTextColor(transaction.riskScore)
-                    )}>
-                      {transaction.riskScore}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-muted-foreground">
-                    {formatDate(transaction.timestamp)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </AnimateChildren>
+          <tbody className="divide-y divide-border">
+            {transactions.map((transaction, index) => (
+              <tr 
+                key={transaction.id} 
+                className="hover:bg-muted/30 transition-colors"
+                style={{
+                  animation: `fadeIn 0.2s ease-out forwards ${index * 0.05}s`
+                }}
+              >
+                <td className="py-3 px-4 text-sm">
+                  <div className="font-medium">{transaction.merchant}</div>
+                  <div className="text-xs text-muted-foreground">{transaction.customer.name}</div>
+                </td>
+                <td className="py-3 px-4 text-sm font-medium">
+                  {formatCurrency(transaction.amount, transaction.currency)}
+                </td>
+                <td className="py-3 px-4 text-sm">
+                  <Badge variant="outline">
+                    {transaction.payment_method.split('_').map(word => 
+                      word.charAt(0).toUpperCase() + word.slice(1)
+                    ).join(' ')}
+                  </Badge>
+                </td>
+                <td className="py-3 px-4">
+                  <Badge variant={
+                    transaction.status === 'approved' ? 'success' :
+                    transaction.status === 'declined' ? 'destructive' :
+                    'warning'
+                  }>
+                    {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                  </Badge>
+                </td>
+                <td className="py-3 px-4">
+                  <div className={cn(
+                    "text-sm font-medium", 
+                    getRiskColor(transaction.risk_score)
+                  )}>
+                    {transaction.risk_score}%
+                  </div>
+                </td>
+                <td className="py-3 px-4 text-sm text-muted-foreground">
+                  {formatDate(transaction.timestamp)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
       
       <div className="mt-4 pt-3 border-t border-border flex justify-center">
-        <button className="text-sm font-medium text-primary hover:text-primary/80 click-bounce">
+        <button className="text-sm font-medium text-primary hover:text-primary/80">
           View All Transactions
         </button>
       </div>
-    </FadeIn>
+    </div>
   );
 };
 

@@ -1,22 +1,64 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { RiskMetrics } from "@/types/database";
+import { Transaction } from "@/types/database";
+import { fetchTransactions } from "./TransactionService";
 
-// Fetch user's risk metrics
-export const fetchRiskMetrics = async (): Promise<RiskMetrics | null> => {
-  const { data, error } = await supabase
-    .from('risk_metrics')
-    .select('*')
-    .order('calculated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+export interface RiskMetrics {
+  overall_risk_score: number;
+  transaction_velocity: number;
+  high_risk_transactions: number;
+  flagged_transactions: number;
+}
 
-  if (error) {
-    console.error('Error fetching risk metrics:', error);
-    return null;
+// Calculate risk metrics based on transaction patterns
+export const calculateRiskMetrics = async (): Promise<RiskMetrics> => {
+  // Get transactions from the last 24 hours for a more comprehensive view
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const transactions = await fetchTransactions(100, twentyFourHoursAgo);
+  
+  // Calculate transaction velocity (transactions per hour)
+  const transactionVelocity = transactions.length / 24; // Average per hour
+  
+  // Calculate risk score based on transaction patterns
+  let overall_risk_score = 0;
+  
+  // Check last hour's transactions for immediate risk
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const recentTransactions = transactions.filter(t => new Date(t.timestamp) >= oneHourAgo);
+  
+  if (recentTransactions.length >= 5) {
+    overall_risk_score = 50; // Base risk for high transaction velocity
+    
+    // Additional risk factors
+    const highValueTransactions = recentTransactions.filter(t => t.amount > 1000).length;
+    if (highValueTransactions > 0) {
+      overall_risk_score += 10;
+    }
+    
+    const unusualLocations = new Set(recentTransactions.map(t => t.location?.country)).size;
+    if (unusualLocations > 2) {
+      overall_risk_score += 20;
+    }
   }
+  
+  // Cap the risk score at 100
+  overall_risk_score = Math.min(overall_risk_score, 100);
+  
+  // Count high risk and flagged transactions from the last 24 hours
+  const high_risk_transactions = transactions.filter(t => t.risk_score >= 50).length;
+  const flagged_transactions = transactions.filter(t => t.status === 'flagged').length;
+  
+  return {
+    overall_risk_score,
+    transaction_velocity: Math.round(transactionVelocity * 10) / 10, // Round to 1 decimal
+    high_risk_transactions,
+    flagged_transactions
+  };
+};
 
-  return data as RiskMetrics;
+// Fetch risk metrics
+export const fetchRiskMetrics = async (): Promise<RiskMetrics> => {
+  return calculateRiskMetrics();
 };
 
 // Create or update risk metrics for the user
@@ -82,20 +124,15 @@ export const updateRiskMetrics = async (metrics: Partial<RiskMetrics>): Promise<
   return result as RiskMetrics;
 };
 
-// Subscribe to real-time risk metrics updates
+// Subscribe to risk metrics updates
 export const subscribeToRiskMetrics = (callback: (metrics: RiskMetrics) => void) => {
-  const channel = supabase
-    .channel('public:risk_metrics')
-    .on('postgres_changes', { 
-      event: '*', 
-      schema: 'public', 
-      table: 'risk_metrics' 
-    }, (payload) => {
-      callback(payload.new as RiskMetrics);
-    })
-    .subscribe();
-
+  // Update risk metrics every minute
+  const interval = setInterval(async () => {
+    const metrics = await calculateRiskMetrics();
+    callback(metrics);
+  }, 60 * 1000);
+  
   return () => {
-    supabase.removeChannel(channel);
+    clearInterval(interval);
   };
 };

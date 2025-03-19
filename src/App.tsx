@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,6 +16,11 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const SecuritySettings = lazy(() => import("./pages/SecuritySettings"));
 const Landing = lazy(() => import("./pages/Landing"));
+
+// New: Import TransactionsPage from the dashboard folder
+const TransactionsPage = lazy(() =>
+  import("./components/dashboard/TransactionsPage")
+);
 
 // Create a loading component for Suspense
 const PageLoader = () => (
@@ -37,14 +41,14 @@ const queryClient = new QueryClient({
 // Protected route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
-  
+
   // Generate demo data when user logs in
   useEffect(() => {
     if (user) {
       generateInitialDemoData();
     }
   }, [user]);
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -52,18 +56,18 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  
+
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
 // Public route component that redirects authenticated users to the dashboard
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -71,49 +75,71 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
       </div>
     );
   }
-  
+
   if (user) {
     return <Navigate to="/" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
 const AppRoutes = () => {
   const { user } = useAuth();
-  
+
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* Landing page route - shown to non-authenticated users */}
-        <Route path="/" element={
-          user ? (
+        <Route
+          path="/"
+          element={
+            user ? (
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            ) : (
+              <Landing />
+            )
+          }
+        />
+
+        <Route
+          path="/auth"
+          element={
+            <PublicRoute>
+              <Auth />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/profile/settings"
+          element={
             <ProtectedRoute>
-              <Index />
+              <ProfileSettings />
             </ProtectedRoute>
-          ) : (
-            <Landing />
-          )
-        } />
-        
-        <Route path="/auth" element={
-          <PublicRoute>
-            <Auth />
-          </PublicRoute>
-        } />
-        
-        <Route path="/profile/settings" element={
-          <ProtectedRoute>
-            <ProfileSettings />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/security/settings" element={
-          <ProtectedRoute>
-            <SecuritySettings />
-          </ProtectedRoute>
-        } />
-        
+          }
+        />
+
+        <Route
+          path="/security/settings"
+          element={
+            <ProtectedRoute>
+              <SecuritySettings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* New route for TransactionsPage */}
+        <Route
+          path="/transactions"
+          element={
+            <ProtectedRoute>
+              <TransactionsPage />
+            </ProtectedRoute>
+          }
+        />
+
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -1,7 +1,76 @@
-
-import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types/database";
 import { analyzeTransaction } from "@/services/FraudDetectionService";
+
+// Sample transactions for demo purposes
+const generateSampleTransactions = () => {
+  const transactions: Transaction[] = [];
+  const merchants = ['Amazon', 'Walmart', 'Target', 'Best Buy', 'Apple Store', 'Nike', 'Adidas', 'Microsoft', 'Google', 'Steam'];
+  const paymentMethods = ['credit_card', 'debit_card', 'paypal', 'apple_pay', 'google_pay'];
+  const cities = ['New York', 'Los Angeles', 'Chicago', 'Miami', 'Boston', 'Seattle', 'Denver', 'Austin', 'San Francisco'];
+  
+  // Generate transactions for the last 24 hours
+  for (let i = 0; i < 24; i++) {
+    // Generate 1-3 transactions per hour
+    const transactionsThisHour = Math.floor(Math.random() * 3) + 1;
+    
+    for (let j = 0; j < transactionsThisHour; j++) {
+      const merchant = merchants[Math.floor(Math.random() * merchants.length)];
+      const amount = Math.round(Math.random() * 900 + 100); // Random amount between 100 and 1000
+      const paymentMethod = paymentMethods[Math.floor(Math.random() * paymentMethods.length)];
+      const city = cities[Math.floor(Math.random() * cities.length)];
+      
+      transactions.push({
+        id: `txn_${i}_${j}`,
+        merchant,
+        amount,
+        currency: 'USD',
+        payment_method: paymentMethod,
+        status: 'approved',
+        risk_score: 0,
+        timestamp: new Date(Date.now() - (i * 60 + Math.floor(Math.random() * 60)) * 60 * 1000).toISOString(),
+        card_last4: paymentMethod.includes('card') ? Math.floor(Math.random() * 9000 + 1000).toString() : undefined,
+        location: { country: 'US', city },
+        customer: {
+          name: `Customer ${i}_${j}`,
+          email: `customer_${i}_${j}@example.com`
+        },
+        type: 'payment'
+      });
+    }
+  }
+  
+  return transactions.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+};
+
+const sampleTransactions = generateSampleTransactions();
+
+// Calculate risk score based on transaction frequency
+const calculateRiskScore = (transactions: Transaction[]): Transaction[] => {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const transactionsInLastHour = transactions.filter(
+    t => new Date(t.timestamp) >= oneHourAgo
+  );
+  
+  // Base risk score on transactions in the last hour
+  const baseRiskScore = transactionsInLastHour.length >= 5 ? 50 : 0;
+  
+  // Additional risk factors
+  const highValueTransactions = transactionsInLastHour.filter(t => t.amount > 1000).length;
+  const uniqueLocations = new Set(transactionsInLastHour.map(t => t.location?.city)).size;
+  
+  let riskScore = baseRiskScore;
+  if (highValueTransactions > 0) riskScore += 10;
+  if (uniqueLocations > 2) riskScore += 20;
+  
+  // Cap risk score at 100
+  riskScore = Math.min(riskScore, 100);
+  
+  // Update risk scores for all transactions in the last hour
+  return transactions.map(t => ({
+    ...t,
+    risk_score: new Date(t.timestamp) >= oneHourAgo ? riskScore : 0
+  }));
+};
 
 // Fetch user's transactions with optional filters
 export const fetchTransactions = async (
@@ -10,120 +79,41 @@ export const fetchTransactions = async (
   endDate?: Date,
   status?: string
 ): Promise<Transaction[]> => {
-  let query = supabase
-    .from('transactions')
-    .select('*')
-    .order('timestamp', { ascending: false })
-    .limit(limit);
-
-  if (startDate) {
-    query = query.gte('timestamp', startDate.toISOString());
-  }
-
-  if (endDate) {
-    query = query.lte('timestamp', endDate.toISOString());
-  }
-
-  if (status) {
-    query = query.eq('status', status);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error fetching transactions:', error);
-    return [];
-  }
-
-  return data as Transaction[];
-};
-
-// Fetch a single transaction by ID
-export const fetchTransactionById = async (id: string): Promise<Transaction | null> => {
-  const { data, error } = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error('Error fetching transaction:', error);
-    return null;
-  }
-
-  return data as Transaction;
-};
-
-// Create a new transaction with fraud detection
-export const createTransaction = async (transaction: Omit<Transaction, 'id' | 'user_id' | 'transaction_number' | 'created_at'>): Promise<Transaction | null> => {
-  const { data: userData } = await supabase.auth.getUser();
+  // Get all transactions first
+  let transactions = [...sampleTransactions];
   
-  if (!userData.user) {
-    throw new Error("User not authenticated");
+  // Calculate risk scores before filtering
+  transactions = calculateRiskScore(transactions);
+  
+  // Apply filters if provided
+  if (startDate) {
+    transactions = transactions.filter(t => new Date(t.timestamp) >= startDate);
   }
-
-  // Create transaction with initial risk score of 0
-  const initialTransaction = {
-    ...transaction,
-    user_id: userData.user.id,
-    risk_score: 0, // Will be updated after analysis
-    is_flagged: false // Will be updated after analysis
-  };
-
-  const { data, error } = await supabase
-    .from('transactions')
-    .insert(initialTransaction)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error creating transaction:', error);
-    return null;
+  if (endDate) {
+    transactions = transactions.filter(t => new Date(t.timestamp) <= endDate);
   }
-
-  // Analyze the transaction for fraud (non-blocking)
-  if (data) {
-    // Run fraud detection asynchronously
-    analyzeTransaction(data as Transaction).catch(err => {
-      console.error('Error in transaction analysis:', err);
-    });
+  if (status) {
+    transactions = transactions.filter(t => t.status === status);
   }
-
-  return data as Transaction;
+  
+  // Return filtered and limited results
+  return transactions.slice(0, limit);
 };
 
-// Update transaction status
+// Mock functions for demo purposes
+export const fetchTransactionById = async (id: string): Promise<Transaction | null> => {
+  const transaction = sampleTransactions.find(t => t.id === id);
+  return transaction ? calculateRiskScore([transaction])[0] : null;
+};
+
+export const createTransaction = async (transaction: Partial<Transaction>): Promise<Transaction | null> => {
+  return null;
+};
+
 export const updateTransactionStatus = async (id: string, status: 'approved' | 'declined' | 'flagged'): Promise<boolean> => {
-  const { error } = await supabase
-    .from('transactions')
-    .update({ 
-      status,
-      is_flagged: status === 'flagged'
-    })
-    .eq('id', id);
-
-  if (error) {
-    console.error('Error updating transaction status:', error);
-    return false;
-  }
-
   return true;
 };
 
-// Subscribe to real-time transaction updates
 export const subscribeToTransactions = (callback: (transaction: Transaction) => void) => {
-  const channel = supabase
-    .channel('public:transactions')
-    .on('postgres_changes', { 
-      event: '*', 
-      schema: 'public', 
-      table: 'transactions' 
-    }, (payload) => {
-      callback(payload.new as Transaction);
-    })
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(channel);
-  };
+  return () => {};
 };
