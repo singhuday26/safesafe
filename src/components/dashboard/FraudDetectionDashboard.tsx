@@ -23,11 +23,11 @@ import TransactionList from "./TransactionList";
 import TransactionCard from "./TransactionCard";
 // Import TransactionsPage from the same folder
 import TransactionsPage from "./TransactionsPage";
-
-import FullRiskReport from './FullRiskReport';
+import FullRiskReport from "./FullRiskReport";
 
 const FraudDetectionDashboard: React.FC = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("24h");
+  const [showFullReport, setShowFullReport] = useState(false);
   
   const getTimeRangeForPeriod = (): { startDate?: Date, endDate?: Date } => {
     const endDate = new Date();
@@ -300,7 +300,11 @@ const FraudDetectionDashboard: React.FC = () => {
                 <Badge variant="outline">{isLoadingTransactions ? "-" : transactions.filter(t => t.status === "flagged").length}</Badge>
               </div>
               
-              <Button className="w-full mt-4" variant="outline">
+              <Button
+                className="w-full mt-4"
+                variant="outline"
+                onClick={() => setShowFullReport(true)}
+              >
                 View Full Risk Report
               </Button>
             </div>
@@ -330,8 +334,8 @@ const FraudDetectionDashboard: React.FC = () => {
           <CardContent>
             <Tabs defaultValue="list" className="space-y-4">
               <TabsList>
-                {/* <TabsTrigger value="list">List View</TabsTrigger>
-                <TabsTrigger value="cards">Card View</TabsTrigger> */}
+                <TabsTrigger value="list">List View</TabsTrigger>
+                <TabsTrigger value="cards">Card View</TabsTrigger>
                 {/* New Tab Trigger for Transactions Page */}
                 <TabsTrigger value="page">Page View</TabsTrigger>
               </TabsList>
@@ -411,6 +415,11 @@ const FraudDetectionDashboard: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Full Risk Report Modal */}
+      {showFullReport && (
+        <FullRiskReport onClose={() => setShowFullReport(false)} />
+      )}
     </FadeIn>
   );
 };
