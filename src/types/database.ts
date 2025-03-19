@@ -17,6 +17,8 @@ export interface Transaction {
   ip_address?: string;
   device_info?: any;
   created_at: string;
+  category?: string;
+  is_flagged?: boolean;
 }
 
 export interface SecurityAlert {
@@ -30,6 +32,7 @@ export interface SecurityAlert {
   related_transaction_id?: string;
   timestamp: string;
   created_at: string;
+  is_resolved?: boolean;
 }
 
 export interface UserSettings {
@@ -45,6 +48,12 @@ export interface UserSettings {
   location_tracking_enabled: boolean;
   created_at: string;
   updated_at: string;
+  theme?: 'light' | 'dark' | 'system';
+  alert_thresholds?: {
+    transaction: number;
+    login: number;
+    device: number;
+  };
 }
 
 export interface RiskMetrics {
@@ -60,6 +69,8 @@ export interface RiskMetrics {
   calculated_at: string;
   created_at: string;
   updated_at: string;
+  unusual_activity_count?: number;
+  last_assessment_date?: string;
 }
 
 export interface SecurityTip {
