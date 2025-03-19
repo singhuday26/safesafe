@@ -1,3 +1,4 @@
+
 /**
  * Performance monitoring utilities for measuring and reporting performance metrics
  */
@@ -132,7 +133,7 @@ export const getPerformanceMetrics = () => {
     dnsLookup: navigationTiming.domainLookupEnd - navigationTiming.domainLookupStart,
     tcpConnection: navigationTiming.connectEnd - navigationTiming.connectStart,
     serverResponse: navigationTiming.responseStart - navigationTiming.requestStart,
-    domLoad: navigationTiming.domComplete - navigationTiming.domLoading,
+    domLoad: navigationTiming.domContentLoadedEnd - navigationTiming.domContentLoadedStart,
     resourceLoad: navigationTiming.loadEventEnd - navigationTiming.loadEventStart,
     totalPageLoad: navigationTiming.loadEventEnd - navigationTiming.startTime
   };
