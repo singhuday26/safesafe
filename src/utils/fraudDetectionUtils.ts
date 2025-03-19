@@ -48,3 +48,10 @@ export const formatDate = (date: Date): string => {
     minute: '2-digit'
   }).format(date);
 };
+
+// Simple utility function to measure performance - for debugging only
+export const measureOperationTime = (operation: string, startTime: number): void => {
+  const endTime = performance.now();
+  const duration = endTime - startTime;
+  console.log(`Operation [${operation}] took ${duration.toFixed(2)}ms`);
+};
