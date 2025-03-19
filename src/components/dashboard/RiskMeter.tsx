@@ -68,7 +68,7 @@ const RiskMeter: React.FC<RiskMeterProps> = ({
             transform: `translateX(-50%) rotate(${angle}deg)`,
             height: '45%',
             width: '2px',
-            backgroundColor: getRiskColor(score).split(' ')[0].replace('bg-', 'rgb(var(--'))+')',
+            backgroundColor: getRiskColor(score).split(' ')[0].replace('bg-', 'rgb(var(--') + '))',
             transition: 'transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)'
           }}
         >
