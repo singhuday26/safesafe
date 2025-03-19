@@ -1,9 +1,8 @@
 
 // Transaction Verification Edge Function
-// This function verifies incoming transactions and runs them through fraud detection rules
-
+// This function verifies transactions and triggers risk scoring
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,145 +16,128 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get the request body
-    const body = await req.json();
-    const { transaction, clientInfo } = body;
+    // Parse the request body
+    const { transaction } = await req.json();
+    console.log("Verifying transaction:", transaction);
 
-    console.log("Received transaction verification request:", JSON.stringify(body, null, 2));
+    // Validate required fields
+    if (!transaction.account_id || !transaction.amount || !transaction.transaction_type) {
+      throw new Error("Missing required transaction fields");
+    }
 
-    if (!transaction || !transaction.account_id || !transaction.amount || !transaction.transaction_type) {
+    // Verify account exists and has sufficient balance for debits
+    const { data: account, error: accountError } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('id', transaction.account_id)
+      .single();
+
+    if (accountError || !account) {
+      throw new Error(`Account verification failed: ${accountError?.message || "Account not found"}`);
+    }
+
+    // For withdrawals, transfers, and payments, check if the account has sufficient balance
+    const isDebit = ['withdrawal', 'transfer', 'payment'].includes(transaction.transaction_type);
+    if (isDebit && Math.abs(Number(transaction.amount)) > account.balance) {
       return new Response(
-        JSON.stringify({ error: "Missing required transaction data" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+        JSON.stringify({ 
+          success: false, 
+          message: "Insufficient funds", 
+          required: Math.abs(Number(transaction.amount)),
+          available: account.balance
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Enhance transaction with client info
-    const enhancedTransaction = {
-      ...transaction,
-      ip_address: clientInfo?.ip || req.headers.get("x-forwarded-for") || "unknown",
-      device_info: clientInfo?.device || {},
-      location_data: clientInfo?.location || {},
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+    // Create the transaction record
+    const transactionToInsert = {
+      account_id: transaction.account_id,
+      amount: isDebit ? -Math.abs(Number(transaction.amount)) : Math.abs(Number(transaction.amount)),
+      transaction_type: transaction.transaction_type,
+      status: 'pending',
+      merchant: transaction.merchant || 'Unknown Merchant',
+      ip_address: transaction.ip_address,
+      location_data: transaction.location_data,
+      device_info: transaction.device_info,
+      metadata: transaction.metadata || {}
     };
 
-    // Insert transaction
-    const { data: insertedTransaction, error: insertError } = await supabase
+    const { data: newTransaction, error: insertError } = await supabase
       .from('transactions')
-      .insert(enhancedTransaction)
+      .insert(transactionToInsert)
       .select()
       .single();
 
-    if (insertError) {
-      console.error("Error inserting transaction:", insertError);
-      return new Response(
-        JSON.stringify({ error: "Failed to process transaction", details: insertError }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
-      );
+    if (insertError || !newTransaction) {
+      throw new Error(`Transaction creation failed: ${insertError?.message}`);
     }
 
-    // Run additional verification checks
-    // 1. Check if account exists and has sufficient balance for withdrawals
-    if (transaction.transaction_type === 'withdrawal' || transaction.transaction_type === 'transfer') {
-      const { data: account, error: accountError } = await supabase
-        .from('accounts')
-        .select('balance, status')
-        .eq('id', transaction.account_id)
-        .single();
+    // Call risk scoring function
+    const { data: riskData, error: riskError } = await supabase.functions.invoke("risk-scoring", {
+      body: { transaction_id: newTransaction.id }
+    });
 
-      if (accountError || !account) {
-        console.error("Account verification error:", accountError);
-        return new Response(
-          JSON.stringify({ error: "Account verification failed", details: accountError }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-        );
-      }
-
-      if (account.status !== 'active') {
-        // Update transaction status to failed
-        await supabase
-          .from('transactions')
-          .update({ status: 'failed', metadata: { reason: 'Account inactive' } })
-          .eq('id', insertedTransaction.id);
-
-        return new Response(
-          JSON.stringify({ error: "Transaction failed", reason: "Account is not active" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-        );
-      }
-
-      if (Math.abs(transaction.amount) > account.balance) {
-        // Update transaction status to failed
-        await supabase
-          .from('transactions')
-          .update({ status: 'failed', metadata: { reason: 'Insufficient funds' } })
-          .eq('id', insertedTransaction.id);
-
-        return new Response(
-          JSON.stringify({ error: "Transaction failed", reason: "Insufficient funds" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-        );
-      }
+    if (riskError) {
+      console.error("Risk scoring failed:", riskError);
     }
 
-    // 2. Update account balance based on transaction type
-    if (insertedTransaction.status === 'completed') {
-      let balanceChangeAmount = 0;
-      
-      switch (transaction.transaction_type) {
-        case 'deposit':
-          balanceChangeAmount = Math.abs(transaction.amount);
-          break;
-        case 'withdrawal':
-        case 'payment':
-          balanceChangeAmount = -Math.abs(transaction.amount);
-          break;
-        case 'transfer':
-          // Handle sender's account (will be negative)
-          balanceChangeAmount = -Math.abs(transaction.amount);
-          
-          // Handle recipient's account if it's internal
-          if (transaction.recipient_id) {
-            await supabase.rpc('update_account_balance', {
-              p_account_id: transaction.recipient_id,
-              p_amount: Math.abs(transaction.amount)
-            });
-          }
-          break;
-        case 'refund':
-          balanceChangeAmount = Math.abs(transaction.amount);
-          break;
-      }
-      
-      // Update the account balance
-      if (balanceChangeAmount !== 0) {
-        await supabase.rpc('update_account_balance', {
+    // If the transaction is not flagged, update the account balance
+    if (!riskData || riskData.risk_score < 70) {
+      const { error: balanceError } = await supabase.rpc(
+        'update_account_balance',
+        { 
           p_account_id: transaction.account_id,
-          p_amount: balanceChangeAmount
-        });
+          p_amount: isDebit ? -Math.abs(Number(transaction.amount)) : Math.abs(Number(transaction.amount)) 
+        }
+      );
+
+      if (balanceError) {
+        console.error("Failed to update account balance:", balanceError);
+        
+        // If we can't update the balance, rollback by setting the transaction to failed
+        await supabase
+          .from('transactions')
+          .update({ status: 'failed' })
+          .eq('id', newTransaction.id);
+
+        throw new Error(`Balance update failed: ${balanceError.message}`);
       }
+
+      // Mark the transaction as completed
+      await supabase
+        .from('transactions')
+        .update({ status: 'completed' })
+        .eq('id', newTransaction.id);
     }
+
+    // Call transaction monitor to check for patterns
+    await supabase.functions.invoke("transaction-monitor", {
+      body: { transaction: newTransaction }
+    });
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        data: insertedTransaction,
-        message: insertedTransaction.status === 'flagged' 
-          ? "Transaction has been flagged for review" 
-          : "Transaction processed successfully"
+      JSON.stringify({ 
+        success: true, 
+        transaction: newTransaction,
+        risk_score: riskData?.risk_score || 0,
+        risk_factors: riskData?.risk_factors || []
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Error in transaction verification:", error);
+    
     return new Response(
-      JSON.stringify({ error: "Server error", details: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      JSON.stringify({ success: false, error: error.message }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      }
     );
   }
 });

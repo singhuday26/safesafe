@@ -1,130 +1,13 @@
 
 // Transaction Monitor Edge Function
-// This function periodically checks for suspicious patterns in recent transactions
-
+// This function monitors transactions in real-time for potential fraud
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Transaction monitoring patterns
-const MONITORING_PATTERNS = {
-  // Structuring pattern (multiple small transactions to avoid detection)
-  STRUCTURING: {
-    MIN_TRANSACTIONS: 3,
-    MAX_AMOUNT: 3000,
-    TIMEFRAME_HOURS: 24
-  },
-  // Velocity pattern (rapid succession of transactions)
-  VELOCITY: {
-    MIN_TRANSACTIONS: 3,
-    TIMEFRAME_MINUTES: 30
-  },
-  // Round amount pattern (suspicious even amounts)
-  ROUND_AMOUNTS: {
-    THRESHOLD: 1000
-  }
-};
-
-// Function to detect structuring pattern (multiple small transactions)
-async function detectStructuring(supabase) {
-  const timeframe = new Date();
-  timeframe.setHours(timeframe.getHours() - MONITORING_PATTERNS.STRUCTURING.TIMEFRAME_HOURS);
-  
-  const { data, error } = await supabase.rpc('get_structuring_patterns', {
-    p_timeframe: timeframe.toISOString(),
-    p_min_transactions: MONITORING_PATTERNS.STRUCTURING.MIN_TRANSACTIONS,
-    p_max_amount: MONITORING_PATTERNS.STRUCTURING.MAX_AMOUNT
-  });
-  
-  if (error) {
-    console.error("Error detecting structuring patterns:", error);
-    return [];
-  }
-  
-  return data || [];
-}
-
-// Function to detect velocity pattern (rapid succession of transactions)
-async function detectVelocity(supabase) {
-  const timeframe = new Date();
-  timeframe.setMinutes(timeframe.getMinutes() - MONITORING_PATTERNS.VELOCITY.TIMEFRAME_MINUTES);
-  
-  const { data, error } = await supabase.rpc('get_velocity_patterns', {
-    p_timeframe: timeframe.toISOString(),
-    p_min_transactions: MONITORING_PATTERNS.VELOCITY.MIN_TRANSACTIONS
-  });
-  
-  if (error) {
-    console.error("Error detecting velocity patterns:", error);
-    return [];
-  }
-  
-  return data || [];
-}
-
-// Function to detect round amount transactions
-async function detectRoundAmounts(supabase) {
-  const { data, error } = await supabase
-    .from('transactions')
-    .select(`
-      id, 
-      amount, 
-      transaction_type, 
-      status, 
-      created_at,
-      accounts!inner(
-        id, 
-        user_id
-      )
-    `)
-    .gte('amount', MONITORING_PATTERNS.ROUND_AMOUNTS.THRESHOLD)
-    .eq('status', 'completed')
-    .filter('amount', 'eq', 'floor(amount)')
-    .order('created_at', { ascending: false })
-    .limit(20);
-  
-  if (error) {
-    console.error("Error detecting round amount patterns:", error);
-    return [];
-  }
-  
-  return data || [];
-}
-
-// Create a fraud alert for detected patterns
-async function createPatternAlert(supabase, pattern, transactions, patternType) {
-  // Get the first transaction to use as the primary reference
-  const primaryTransaction = transactions[0];
-  
-  // Create the alert
-  const { data, error } = await supabase
-    .from('fraud_alerts')
-    .insert({
-      transaction_id: primaryTransaction.id,
-      detection_method: 'pattern_recognition',
-      severity: 'medium',
-      details: {
-        pattern_type: patternType,
-        pattern_description: pattern.description,
-        transactions: transactions.map(t => t.id),
-        total_amount: pattern.total_amount,
-        detection_timestamp: new Date().toISOString()
-      }
-    })
-    .select()
-    .single();
-  
-  if (error) {
-    console.error("Error creating pattern alert:", error);
-    return null;
-  }
-  
-  return data;
-}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -133,121 +16,169 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    console.log("Starting transaction pattern monitoring...");
-    
-    // Detect structuring patterns
-    const structuringPatterns = await detectStructuring(supabase);
-    console.log(`Detected ${structuringPatterns.length} structuring patterns`);
-    
-    // Detect velocity patterns
-    const velocityPatterns = await detectVelocity(supabase);
-    console.log(`Detected ${velocityPatterns.length} velocity patterns`);
-    
-    // Detect round amount patterns
-    const roundAmountTransactions = await detectRoundAmounts(supabase);
-    console.log(`Detected ${roundAmountTransactions.length} round amount transactions`);
-    
-    // Process and create alerts
-    const alerts = [];
-    
-    // Create alerts for structuring patterns
-    for (const pattern of structuringPatterns) {
-      const { data: transactions, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .in('id', pattern.transaction_ids);
-        
-      if (!error && transactions) {
-        const alert = await createPatternAlert(
-          supabase, 
-          pattern, 
-          transactions, 
-          'structuring'
-        );
-        
-        if (alert) alerts.push(alert);
-      }
+    // Parse the request body
+    const { transaction } = await req.json();
+    console.log("Processing transaction:", transaction.id);
+
+    // Skip if the transaction is already flagged
+    if (transaction.status === 'flagged') {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Transaction already flagged, skipping checks" 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-    
-    // Create alerts for velocity patterns
-    for (const pattern of velocityPatterns) {
-      const { data: transactions, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .in('id', pattern.transaction_ids);
-        
-      if (!error && transactions) {
-        const alert = await createPatternAlert(
-          supabase, 
-          pattern, 
-          transactions, 
-          'velocity'
-        );
-        
-        if (alert) alerts.push(alert);
+
+    // 1. Check for velocity patterns
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: velocityPatterns, error: velocityError } = await supabase.rpc(
+      'get_velocity_patterns',
+      { 
+        p_timeframe: oneHourAgo,
+        p_min_transactions: 3
       }
-    }
+    );
     
-    // Create alerts for suspicious round amounts
-    if (roundAmountTransactions.length > 0) {
-      // Group by account
-      const accountGroups = {};
-      
-      for (const tx of roundAmountTransactions) {
-        const accountId = tx.accounts.id;
-        if (!accountGroups[accountId]) {
-          accountGroups[accountId] = [];
+    if (velocityError) {
+      console.error("Velocity pattern check error:", velocityError);
+    } else if (velocityPatterns && velocityPatterns.length > 0) {
+      console.log("Velocity patterns detected:", velocityPatterns);
+
+      // Create fraud alert for velocity pattern
+      for (const pattern of velocityPatterns) {
+        if (pattern.transaction_ids.includes(transaction.id)) {
+          await supabase.from('fraud_alerts').insert({
+            transaction_id: transaction.id,
+            detection_method: 'velocity_pattern',
+            severity: 'medium',
+            status: 'new',
+            details: {
+              pattern_type: 'velocity',
+              transaction_count: pattern.transaction_count,
+              time_span_minutes: pattern.time_span_minutes,
+              total_amount: pattern.total_amount,
+              transaction_ids: pattern.transaction_ids,
+              description: pattern.description
+            }
+          });
+
+          // Flag the transaction
+          await supabase
+            .from('transactions')
+            .update({ status: 'flagged' })
+            .eq('id', transaction.id);
         }
-        accountGroups[accountId].push(tx);
       }
+    }
+
+    // 2. Check for structuring patterns (multiple small transactions)
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: structuringPatterns, error: structuringError } = await supabase.rpc(
+      'get_structuring_patterns',
+      { 
+        p_timeframe: threeDaysAgo,
+        p_min_transactions: 5,
+        p_max_amount: 1000
+      }
+    );
+    
+    if (structuringError) {
+      console.error("Structuring pattern check error:", structuringError);
+    } else if (structuringPatterns && structuringPatterns.length > 0) {
+      console.log("Structuring patterns detected:", structuringPatterns);
+
+      // Create fraud alert for structuring pattern
+      for (const pattern of structuringPatterns) {
+        if (pattern.transaction_ids.includes(transaction.id)) {
+          await supabase.from('fraud_alerts').insert({
+            transaction_id: transaction.id,
+            detection_method: 'structuring_pattern',
+            severity: 'high',
+            status: 'new',
+            details: {
+              pattern_type: 'structuring',
+              transaction_count: pattern.transaction_count,
+              total_amount: pattern.total_amount,
+              transaction_ids: pattern.transaction_ids,
+              description: pattern.description
+            }
+          });
+
+          // Flag the transaction
+          await supabase
+            .from('transactions')
+            .update({ status: 'flagged' })
+            .eq('id', transaction.id);
+        }
+      }
+    }
+
+    // 3. Check for geographical anomalies
+    if (transaction.ip_address && transaction.location_data) {
+      const { data: recentTransactions, error: geoError } = await supabase
+        .from('transactions')
+        .select('location_data, created_at')
+        .eq('account_id', transaction.account_id)
+        .neq('id', transaction.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
       
-      // Create an alert for each account with round amount transactions
-      for (const [accountId, transactions] of Object.entries(accountGroups)) {
-        if (transactions.length >= 2) { // Only alert if multiple round transactions
-          const totalAmount = transactions.reduce((sum, tx) => sum + Number(tx.amount), 0);
+      if (geoError) {
+        console.error("Geo anomaly check error:", geoError);
+      } else if (recentTransactions && recentTransactions.length > 0) {
+        // Check if current country is different from previous transactions
+        const currentCountry = transaction.location_data.country;
+        const previousCountries = recentTransactions
+          .filter(t => t.location_data && t.location_data.country)
+          .map(t => t.location_data.country);
+        
+        // If we have previous country data and current country is different
+        if (previousCountries.length > 0 && !previousCountries.includes(currentCountry)) {
+          console.log("Geographical anomaly detected:", currentCountry, "vs", previousCountries);
           
-          const pattern = {
-            description: "Multiple transactions with suspiciously round amounts",
-            total_amount: totalAmount,
-            transaction_count: transactions.length
-          };
-          
-          const alert = await createPatternAlert(
-            supabase, 
-            pattern, 
-            transactions, 
-            'round_amounts'
-          );
-          
-          if (alert) alerts.push(alert);
+          await supabase.from('fraud_alerts').insert({
+            transaction_id: transaction.id,
+            detection_method: 'geographical_anomaly',
+            severity: 'high',
+            status: 'new',
+            details: {
+              current_location: transaction.location_data,
+              previous_locations: recentTransactions.map(t => t.location_data),
+              description: `Transaction from new location (${currentCountry}) detected`
+            }
+          });
+
+          // Flag the transaction
+          await supabase
+            .from('transactions')
+            .update({ status: 'flagged' })
+            .eq('id', transaction.id);
         }
       }
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          patterns_detected: {
-            structuring: structuringPatterns.length,
-            velocity: velocityPatterns.length,
-            round_amounts: roundAmountTransactions.length
-          },
-          alerts_created: alerts.length
-        },
-        message: "Transaction monitoring completed successfully"
+      JSON.stringify({ 
+        success: true, 
+        message: "Transaction monitoring completed" 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Error in transaction monitor:", error);
+    
     return new Response(
-      JSON.stringify({ error: "Server error", details: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      JSON.stringify({ success: false, error: error.message }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      }
     );
   }
 });

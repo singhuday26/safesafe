@@ -1,38 +1,13 @@
 
 // Notification Dispatcher Edge Function
-// This function sends alerts for suspicious activities through various channels
-
+// This function sends alerts for suspicious activities
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// For sending emails
-// This is a mock implementation - in production, integrate with SendGrid, AWS SES, etc.
-async function sendEmail(to: string, subject: string, body: string) {
-  console.log(`[EMAIL MOCK] To: ${to}, Subject: ${subject}, Body: ${body}`);
-  // In production, implement actual email sending logic
-  return true;
-}
-
-// For sending SMS
-// This is a mock implementation - in production, integrate with Twilio, etc.
-async function sendSMS(to: string, message: string) {
-  console.log(`[SMS MOCK] To: ${to}, Message: ${message}`);
-  // In production, implement actual SMS sending logic
-  return true;
-}
-
-// For sending push notifications
-// This is a mock implementation - in production, integrate with Firebase, OneSignal, etc.
-async function sendPushNotification(userId: string, title: string, body: string) {
-  console.log(`[PUSH MOCK] To User: ${userId}, Title: ${title}, Body: ${body}`);
-  // In production, implement actual push notification logic
-  return true;
-}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -41,29 +16,21 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get the request body
-    const body = await req.json();
-    const { alert_id, notification_types = ['email', 'sms', 'push'] } = body;
+    // Parse the request body
+    const { alert_id } = await req.json();
+    console.log("Processing notification for alert:", alert_id);
 
-    console.log(`Processing notifications for alert: ${alert_id}`);
-
-    if (!alert_id) {
-      return new Response(
-        JSON.stringify({ error: "Missing alert_id" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
-      );
-    }
-
-    // Fetch the alert with related transaction and account info
+    // Get the alert details
     const { data: alert, error: alertError } = await supabase
       .from('fraud_alerts')
       .select(`
         *,
-        transactions!inner(*,
+        transactions!inner(
+          *,
           accounts!inner(
             *,
             users!inner(*)
@@ -74,99 +41,175 @@ serve(async (req) => {
       .single();
 
     if (alertError || !alert) {
-      console.error("Error fetching alert:", alertError);
-      return new Response(
-        JSON.stringify({ error: "Alert not found", details: alertError }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
-      );
+      throw new Error(`Alert not found: ${alertError?.message || "No data"}`);
     }
 
-    // Extract relevant information
-    const transaction = alert.transactions;
-    const account = transaction.accounts;
-    const user = account.users;
-    
-    const results = {
-      email: false,
-      sms: false,
-      push: false
+    // Get user settings to check notification preferences
+    const user_id = alert.transactions.accounts.user_id;
+    const { data: userSettings, error: settingsError } = await supabase
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', user_id)
+      .single();
+
+    if (settingsError) {
+      console.error("Failed to get user settings:", settingsError);
+    }
+
+    // Prepare notification data
+    const notificationData = {
+      user_id,
+      alert_id,
+      transaction_id: alert.transaction_id,
+      severity: alert.severity,
+      title: getSeverityTitle(alert.severity),
+      message: buildAlertMessage(alert),
+      email_sent: false,
+      sms_sent: false,
+      push_sent: false,
+      created_at: new Date().toISOString()
     };
 
-    // Prepare notification content
-    const alertSeverity = alert.severity.toUpperCase();
-    const transactionAmount = Math.abs(transaction.amount);
-    const transactionType = transaction.transaction_type;
-    const merchantOrRecipient = transaction.metadata?.merchant || "Unknown Merchant";
+    // Send appropriate notifications based on user preferences
+    // In a real app, you would integrate with email, SMS, and push notification services
     
-    const notificationTitle = `${alertSeverity} Risk Alert: Suspicious ${transactionType}`;
-    const notificationBody = `We detected a suspicious ${transactionType} of ${transactionAmount} to ${merchantOrRecipient}. Please review this transaction immediately.`;
-
-    // Send email notification if requested
-    if (notification_types.includes('email')) {
-      // In production, get the actual email from user preferences
-      const userEmail = user.email;
-      if (userEmail) {
-        results.email = await sendEmail(
-          userEmail,
-          notificationTitle,
-          `Dear ${user.full_name},\n\n${notificationBody}\n\nIf you did not authorize this transaction, please contact our security team immediately.\n\nSecuraSentry Security Team`
-        );
-      }
+    // 1. Simulate email notification
+    if (!userSettings || userSettings.notification_email) {
+      console.log(`EMAIL NOTIFICATION to user ${user_id}:`, {
+        subject: notificationData.title,
+        body: notificationData.message
+      });
+      
+      notificationData.email_sent = true;
+      
+      // Record sent email in audit log
+      await supabase.rpc(
+        'log_audit',
+        { 
+          p_user_id: user_id,
+          p_action: 'email_notification_sent',
+          p_resource_type: 'fraud_alert',
+          p_resource_id: alert_id,
+          p_metadata: { alert_severity: alert.severity }
+        }
+      );
     }
-
-    // Send SMS notification if requested
-    if (notification_types.includes('sms')) {
-      // In production, get the phone number from user preferences
-      const userPhone = user.phone_number || "123456789"; // Mock phone number
-      if (userPhone) {
-        results.sms = await sendSMS(
-          userPhone,
-          `SecuraSentry Alert: ${notificationBody} Reply HELP for assistance.`
-        );
-      }
+    
+    // 2. Simulate SMS notification for high and critical alerts
+    if ((!userSettings || userSettings.notification_sms) && 
+        (alert.severity === 'high' || alert.severity === 'critical')) {
+      console.log(`SMS NOTIFICATION to user ${user_id}:`, {
+        message: `${notificationData.title}: ${notificationData.message.substring(0, 100)}...`
+      });
+      
+      notificationData.sms_sent = true;
+      
+      // Record sent SMS in audit log
+      await supabase.rpc(
+        'log_audit',
+        { 
+          p_user_id: user_id,
+          p_action: 'sms_notification_sent',
+          p_resource_type: 'fraud_alert',
+          p_resource_id: alert_id,
+          p_metadata: { alert_severity: alert.severity }
+        }
+      );
     }
-
-    // Send push notification if requested
-    if (notification_types.includes('push')) {
-      results.push = await sendPushNotification(
-        user.id,
-        notificationTitle,
-        notificationBody
+    
+    // 3. Simulate push notification
+    if (!userSettings || userSettings.notification_push) {
+      console.log(`PUSH NOTIFICATION to user ${user_id}:`, {
+        title: notificationData.title,
+        body: notificationData.message.substring(0, 150) + "..."
+      });
+      
+      notificationData.push_sent = true;
+      
+      // Record sent push notification in audit log
+      await supabase.rpc(
+        'log_audit',
+        { 
+          p_user_id: user_id,
+          p_action: 'push_notification_sent',
+          p_resource_type: 'fraud_alert',
+          p_resource_id: alert_id,
+          p_metadata: { alert_severity: alert.severity }
+        }
       );
     }
 
-    // Log the notification in audit logs
-    await supabase
-      .from('audit_logs')
-      .insert({
-        user_id: user.id,
-        action: 'notification_sent',
-        resource_type: 'fraud_alert',
-        resource_id: alert.id,
-        metadata: {
-          notification_types: notification_types,
-          results: results,
-          alert_severity: alert.severity,
-          transaction_id: transaction.id
-        }
-      });
-
     return new Response(
-      JSON.stringify({
-        success: true,
-        data: {
-          alert_id,
-          notification_results: results
-        },
-        message: "Notifications dispatched successfully"
+      JSON.stringify({ 
+        success: true, 
+        notifications: notificationData
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Error in notification dispatcher:", error);
+    
     return new Response(
-      JSON.stringify({ error: "Server error", details: error.message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 }
+      JSON.stringify({ success: false, error: error.message }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+      }
     );
   }
 });
+
+// Helper functions
+function getSeverityTitle(severity) {
+  switch (severity) {
+    case 'critical':
+      return 'CRITICAL FRAUD ALERT';
+    case 'high':
+      return 'High Priority Security Alert';
+    case 'medium':
+      return 'Security Alert';
+    case 'low':
+      return 'Potential Security Concern';
+    default:
+      return 'Security Notification';
+  }
+}
+
+function buildAlertMessage(alert) {
+  const transaction = alert.transactions;
+  const account = transaction.accounts;
+  const amount = Math.abs(Number(transaction.amount));
+  const formattedAmount = new Intl.NumberFormat('en-US', { 
+    style: 'currency', 
+    currency: 'USD' 
+  }).format(amount);
+  
+  let message = '';
+  
+  switch (alert.detection_method) {
+    case 'risk_scoring':
+      message = `A ${transaction.transaction_type} transaction for ${formattedAmount} has been flagged with a high risk score of ${alert.details.risk_score}`;
+      break;
+    case 'velocity_pattern':
+      message = `Unusual activity detected: Multiple transactions (${alert.details.transaction_count}) within a short time period (${alert.details.time_span_minutes} minutes)`;
+      break;
+    case 'structuring_pattern':
+      message = `Potential structuring detected: Multiple small transactions totaling ${formattedAmount}`;
+      break;
+    case 'geographical_anomaly':
+      message = `Transaction from unusual location detected: ${alert.details.current_location.country}`;
+      break;
+    default:
+      message = `Suspicious transaction of ${formattedAmount} has been detected`;
+  }
+  
+  message += `. Transaction occurred on ${new Date(transaction.created_at).toLocaleString()}.`;
+  
+  if (alert.severity === 'critical' || alert.severity === 'high') {
+    message += " Please review this transaction immediately and contact support if you did not authorize it.";
+  } else {
+    message += " Please review this transaction and report if unauthorized.";
+  }
+  
+  return message;
+}
