@@ -24,6 +24,8 @@ import TransactionCard from "./TransactionCard";
 // Import TransactionsPage from the same folder
 import TransactionsPage from "./TransactionsPage";
 
+import FullRiskReport from './FullRiskReport';
+
 const FraudDetectionDashboard: React.FC = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("24h");
   
@@ -328,8 +330,8 @@ const FraudDetectionDashboard: React.FC = () => {
           <CardContent>
             <Tabs defaultValue="list" className="space-y-4">
               <TabsList>
-                <TabsTrigger value="list">List View</TabsTrigger>
-                <TabsTrigger value="cards">Card View</TabsTrigger>
+                {/* <TabsTrigger value="list">List View</TabsTrigger>
+                <TabsTrigger value="cards">Card View</TabsTrigger> */}
                 {/* New Tab Trigger for Transactions Page */}
                 <TabsTrigger value="page">Page View</TabsTrigger>
               </TabsList>
