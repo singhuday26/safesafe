@@ -2,7 +2,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { FadeIn } from "../animations/FadeIn";
-import { getRiskCategory, getRiskColor } from "@/utils/mockData";
+import { getRiskLevel, getRiskColor } from "@/utils/fraudDetectionUtils";
 
 interface RiskMeterProps {
   score: number;
@@ -17,7 +17,7 @@ const RiskMeter: React.FC<RiskMeterProps> = ({
   showLabel = true,
   className
 }) => {
-  const category = getRiskCategory(score);
+  const level = getRiskLevel(score);
   const segmentColor = getRiskColor(score);
   
   const sizeDimensions = {
@@ -68,7 +68,7 @@ const RiskMeter: React.FC<RiskMeterProps> = ({
             transform: `translateX(-50%) rotate(${angle}deg)`,
             height: '45%',
             width: '2px',
-            backgroundColor: getRiskColor(score),
+            backgroundColor: getRiskColor(score).split(' ')[0].replace('bg-', 'rgb(var(--'))+')',
             transition: 'transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)'
           }}
         >
@@ -90,7 +90,7 @@ const RiskMeter: React.FC<RiskMeterProps> = ({
       {showLabel && (
         <div className="mt-3 text-center">
           <p className={cn("font-semibold capitalize", textSize[size])}>
-            {category} Risk
+            {level} Risk
           </p>
         </div>
       )}

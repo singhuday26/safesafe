@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FadeIn } from "@/components/animations/FadeIn";
@@ -15,15 +16,13 @@ import { fetchSecurityTips } from "@/services/SecurityTipsService";
 import { TimePeriod, getRiskColor, getRiskLevel, formatCurrency, formatDate } from "@/utils/fraudDetectionUtils";
 import { Transaction } from "@/types/database";
 import { 
-  Activity, AlertTriangle, ArrowDown, ArrowRight, ArrowUp, Bell, Calendar, 
-  Check, Clock, CreditCard, DollarSign, FileText, Filter, Info, PieChart, 
-  Shield, Truck, User, X
+  Activity, AlertTriangle, ArrowDown, ArrowRight, ArrowUp, Bell, Check, 
+  CreditCard, Info, Shield, X
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const FraudDetectionDashboard: React.FC = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("7d");
-  const [viewType, setViewType] = useState<"grid" | "list">("grid");
   
   const getTimeRangeForPeriod = (): { startDate?: Date, endDate?: Date } => {
     const endDate = new Date();
@@ -55,7 +54,7 @@ const FraudDetectionDashboard: React.FC = () => {
   const { riskMetrics, isLoading: isLoadingMetrics } = useRiskMetrics();
   const { alerts, isLoading: isLoadingAlerts } = useSecurityAlerts(5);
   
-  const { data: insights, isLoading: isLoadingInsights } = useQuery({
+  const { data: securityTips, isLoading: isLoadingSecurityTips } = useQuery({
     queryKey: ['securityTips'],
     queryFn: () => fetchSecurityTips(3),
   });
@@ -202,7 +201,7 @@ const FraudDetectionDashboard: React.FC = () => {
     </TableRow>
   );
   
-  const renderInsightSkeleton = () => (
+  const renderSecurityTipSkeleton = () => (
     <div className="border rounded-lg p-4">
       <div className="flex justify-between items-start mb-2">
         <Skeleton className="h-5 w-32" />
@@ -355,7 +354,7 @@ const FraudDetectionDashboard: React.FC = () => {
                         <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <div className={`h-2 w-2 rounded-full ${getRiskColor(transaction.risk_score)}`}></div>
+                            <div className={`h-2 w-2 rounded-full ${getRiskColor(transaction.risk_score).split(' ')[0]}`}></div>
                             <span className="text-sm">{transaction.risk_score}</span>
                           </div>
                         </TableCell>
@@ -385,22 +384,22 @@ const FraudDetectionDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {isLoadingInsights ? (
+              {isLoadingSecurityTips ? (
                 Array(3).fill(0).map((_, i) => (
-                  <div key={i}>{renderInsightSkeleton()}</div>
+                  <div key={i}>{renderSecurityTipSkeleton()}</div>
                 ))
-              ) : insights && insights.length > 0 ? (
-                insights.map(insight => (
-                  <div key={insight.id} className="border rounded-lg p-4 hover:bg-accent transition-colors duration-200">
+              ) : securityTips && securityTips.length > 0 ? (
+                securityTips.map(tip => (
+                  <div key={tip.id} className="border rounded-lg p-4 hover:bg-accent transition-colors duration-200">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold">{insight.title}</h4>
-                      <Badge variant="outline">{insight.category}</Badge>
+                      <h4 className="font-semibold">{tip.title}</h4>
+                      <Badge variant="outline">{tip.category}</Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4">{insight.content}</p>
+                    <p className="text-sm text-muted-foreground mb-4">{tip.content}</p>
                     <div className="flex justify-between items-center mt-2">
                       <div className="flex items-center text-xs text-muted-foreground">
                         <Shield className="h-3 w-3 mr-1" />
-                        Priority: {insight.priority}
+                        Priority: {tip.priority}
                       </div>
                       <Button variant="ghost" size="sm" className="h-8 px-2">
                         Learn More

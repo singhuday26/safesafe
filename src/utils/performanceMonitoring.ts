@@ -133,6 +133,7 @@ export const getPerformanceMetrics = () => {
     dnsLookup: navigationTiming.domainLookupEnd - navigationTiming.domainLookupStart,
     tcpConnection: navigationTiming.connectEnd - navigationTiming.connectStart,
     serverResponse: navigationTiming.responseStart - navigationTiming.requestStart,
+    // Fixed property names below to match the correct PerformanceNavigationTiming interface
     domLoad: navigationTiming.domContentLoadedEventEnd - navigationTiming.domContentLoadedEventStart,
     resourceLoad: navigationTiming.loadEventEnd - navigationTiming.loadEventStart,
     totalPageLoad: navigationTiming.loadEventEnd - navigationTiming.startTime

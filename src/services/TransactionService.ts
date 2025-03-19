@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types/database";
+import { analyzeTransaction } from "@/services/FraudDetectionService";
 
 // Fetch user's transactions with optional filters
 export const fetchTransactions = async (
@@ -53,7 +54,7 @@ export const fetchTransactionById = async (id: string): Promise<Transaction | nu
   return data as Transaction;
 };
 
-// Create a new transaction
+// Create a new transaction with fraud detection
 export const createTransaction = async (transaction: Omit<Transaction, 'id' | 'user_id' | 'transaction_number' | 'created_at'>): Promise<Transaction | null> => {
   const { data: userData } = await supabase.auth.getUser();
   
@@ -61,18 +62,31 @@ export const createTransaction = async (transaction: Omit<Transaction, 'id' | 'u
     throw new Error("User not authenticated");
   }
 
+  // Create transaction with initial risk score of 0
+  const initialTransaction = {
+    ...transaction,
+    user_id: userData.user.id,
+    risk_score: 0, // Will be updated after analysis
+    is_flagged: false // Will be updated after analysis
+  };
+
   const { data, error } = await supabase
     .from('transactions')
-    .insert({
-      ...transaction,
-      user_id: userData.user.id,
-    })
+    .insert(initialTransaction)
     .select()
     .single();
 
   if (error) {
     console.error('Error creating transaction:', error);
     return null;
+  }
+
+  // Analyze the transaction for fraud (non-blocking)
+  if (data) {
+    // Run fraud detection asynchronously
+    analyzeTransaction(data as Transaction).catch(err => {
+      console.error('Error in transaction analysis:', err);
+    });
   }
 
   return data as Transaction;
@@ -82,7 +96,10 @@ export const createTransaction = async (transaction: Omit<Transaction, 'id' | 'u
 export const updateTransactionStatus = async (id: string, status: 'approved' | 'declined' | 'flagged'): Promise<boolean> => {
   const { error } = await supabase
     .from('transactions')
-    .update({ status })
+    .update({ 
+      status,
+      is_flagged: status === 'flagged'
+    })
     .eq('id', id);
 
   if (error) {
