@@ -55,3 +55,45 @@ export const measureOperationTime = (operation: string, startTime: number): void
   const duration = endTime - startTime;
   console.log(`Operation [${operation}] took ${duration.toFixed(2)}ms`);
 };
+
+// Format number with K/M/B suffix for large numbers
+export const formatLargeNumber = (num: number): string => {
+  if (num >= 1000000000) {
+    return (num / 1000000000).toFixed(1) + 'B';
+  }
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  }
+  return num.toString();
+};
+
+// Get risk severity from risk score
+export const getRiskSeverity = (score: number): string => {
+  if (score >= 80) return "Critical";
+  if (score >= 60) return "High";
+  if (score >= 30) return "Medium";
+  return "Low";
+};
+
+// Check if a transaction amount is suspicious (very round number)
+export const isRoundAmount = (amount: number): boolean => {
+  // Check if amount has no decimal places or is a multiple of 100/1000
+  return amount % 1 === 0 || amount % 100 === 0 || amount % 1000 === 0;
+};
+
+// Utility to create an ISO date string for a relative time in the past
+export const getRelativeTimeISOString = (days: number): string => {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString();
+};
+
+// Check if a time of day is unusual
+export const isUnusualTime = (date: Date): boolean => {
+  const hour = date.getHours();
+  // Late night hours (0-5 AM)
+  return hour >= 0 && hour <= 5;
+};
