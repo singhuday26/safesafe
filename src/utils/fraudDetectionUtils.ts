@@ -41,14 +41,14 @@ export const formatLargeNumber = (num: number): string => {
   return num.toString();
 };
 
-export const measureOperationTime = (operation: () => any) => {
-  const start = performance.now();
-  const result = operation();
-  const end = performance.now();
-  return {
-    result,
-    durationMs: end - start
-  };
+export const measureOperationTime = (operation: string, startTime?: number): number => {
+  const currentTime = performance.now();
+  if (startTime) {
+    const duration = currentTime - startTime;
+    console.log(`Operation ${operation} took ${duration.toFixed(2)}ms`);
+    return duration;
+  }
+  return currentTime;
 };
 
 export type TimePeriod = '24h' | '7d' | '30d' | 'all';

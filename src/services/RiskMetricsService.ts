@@ -1,9 +1,11 @@
+
 import { supabase } from "@/integrations/supabase/client";
-import { RiskMetrics } from "@/types/database";
+import { RiskMetrics as DBRiskMetrics } from "@/types/database";
 import { Transaction } from "@/types/database";
 import { fetchTransactions } from "./TransactionService";
 
-export interface RiskMetrics {
+// Custom interface for frontend risk metrics
+export interface RiskMetricsData {
   overall_risk_score: number;
   transaction_velocity: number;
   high_risk_transactions: number;
@@ -11,7 +13,7 @@ export interface RiskMetrics {
 }
 
 // Calculate risk metrics based on transaction patterns
-export const calculateRiskMetrics = async (): Promise<RiskMetrics> => {
+export const calculateRiskMetrics = async (): Promise<RiskMetricsData> => {
   // Get transactions from the last 24 hours for a more comprehensive view
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const transactions = await fetchTransactions(100, twentyFourHoursAgo);
@@ -35,8 +37,12 @@ export const calculateRiskMetrics = async (): Promise<RiskMetrics> => {
       overall_risk_score += 10;
     }
     
-    const unusualLocations = new Set(recentTransactions.map(t => t.location?.country)).size;
-    if (unusualLocations > 2) {
+    // Check for unusual locations - this is a safe fallback if location is not available
+    const uniqueCountries = new Set(recentTransactions
+      .filter(t => t.country)
+      .map(t => t.country)).size;
+      
+    if (uniqueCountries > 2) {
       overall_risk_score += 20;
     }
   }
@@ -57,12 +63,12 @@ export const calculateRiskMetrics = async (): Promise<RiskMetrics> => {
 };
 
 // Fetch risk metrics
-export const fetchRiskMetrics = async (): Promise<RiskMetrics> => {
+export const fetchRiskMetrics = async (): Promise<RiskMetricsData> => {
   return calculateRiskMetrics();
 };
 
 // Create or update risk metrics for the user
-export const updateRiskMetrics = async (metrics: Partial<RiskMetrics>): Promise<RiskMetrics | null> => {
+export const updateRiskMetrics = async (metrics: Partial<DBRiskMetrics>): Promise<DBRiskMetrics | null> => {
   const { data: userData } = await supabase.auth.getUser();
   
   if (!userData.user) {
@@ -121,11 +127,11 @@ export const updateRiskMetrics = async (metrics: Partial<RiskMetrics>): Promise<
     result = data;
   }
 
-  return result as RiskMetrics;
+  return result as DBRiskMetrics;
 };
 
 // Subscribe to risk metrics updates
-export const subscribeToRiskMetrics = (callback: (metrics: RiskMetrics) => void) => {
+export const subscribeToRiskMetrics = (callback: (metrics: RiskMetricsData) => void) => {
   // Update risk metrics every minute
   const interval = setInterval(async () => {
     const metrics = await calculateRiskMetrics();

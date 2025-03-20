@@ -19,7 +19,7 @@ const FraudMonitoring: React.FC = () => {
       });
 
       // Call the create_demo_data function in Supabase
-      const { data, error } = await supabase.rpc('create_demo_data');
+      const { error } = await supabase.rpc('create_demo_data');
 
       if (error) {
         throw error;

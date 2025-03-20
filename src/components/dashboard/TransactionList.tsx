@@ -69,13 +69,21 @@ const TransactionList: React.FC<TransactionListProps> = ({
               const merchant = 'merchant' in transaction ? transaction.merchant : 'Unknown';
               const amount = 'amount' in transaction ? transaction.amount : 0;
               const currency = 'currency' in transaction ? transaction.currency : 'USD';
+              
               const paymentMethod = 'payment_method' in transaction 
                 ? transaction.payment_method 
-                : ('paymentMethod' in transaction ? transaction.paymentMethod : 'Unknown');
+                : ('paymentMethod' in transaction && transaction.paymentMethod !== undefined) 
+                  ? transaction.paymentMethod 
+                  : 'Unknown';
+                  
               const status = 'status' in transaction ? transaction.status : 'approved';
+              
               const riskScore = 'risk_score' in transaction 
                 ? transaction.risk_score 
-                : ('riskScore' in transaction ? transaction.riskScore : 0);
+                : ('riskScore' in transaction && transaction.riskScore !== undefined) 
+                  ? transaction.riskScore 
+                  : 0;
+                  
               const timestamp = 'timestamp' in transaction ? transaction.timestamp : new Date().toISOString();
               
               return (

@@ -21,15 +21,17 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
 }) => {
   // Handle both Transaction and ExtendedTransaction
   const customer = 'customer' in transaction ? transaction.customer : undefined;
+  
   const location = {
     city: 'city' in transaction ? transaction.city : 
-          'location' in transaction && transaction.location ? transaction.location.city : undefined,
+          ('location' in transaction && transaction.location) ? transaction.location.city : undefined,
     country: 'country' in transaction ? transaction.country : 
-            'location' in transaction && transaction.location ? transaction.location.country : undefined
+            ('location' in transaction && transaction.location) ? transaction.location.country : undefined
   };
   
+  // Handle risk score from either format
   const riskScore = 'risk_score' in transaction ? transaction.risk_score : 
-                   'riskScore' in transaction ? transaction.riskScore : 0;
+                   ('riskScore' in transaction && transaction.riskScore !== undefined) ? transaction.riskScore : 0;
   
   const riskLevel = getRiskLevel(riskScore);
   const riskColor = getRiskColor(riskScore);
@@ -85,8 +87,11 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
 
   const transactionType = 'type' in transaction ? transaction.type : 'payment';
   const status = 'status' in transaction ? transaction.status : 'approved';
+  
+  // Handle both naming formats for payment method
   const paymentMethod = 'payment_method' in transaction ? transaction.payment_method : 
-                        'paymentMethod' in transaction ? transaction.paymentMethod : 'credit_card';
+                        ('paymentMethod' in transaction && transaction.paymentMethod !== undefined) ? transaction.paymentMethod : 'credit_card';
+  
   const cardLast4 = 'card_last4' in transaction ? transaction.card_last4 : undefined;
 
   return (

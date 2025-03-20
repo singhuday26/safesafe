@@ -1,9 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Transaction } from "@/types/database";
 import { toast } from "sonner";
-import { measureOperationTime } from "@/utils/fraudDetectionUtils";
-import { getRiskLevel } from "@/utils/fraudDetectionUtils";
+import { measureOperationTime, getRiskLevel } from "@/utils/fraudDetectionUtils";
 
 // Factors for risk scoring
 const RISK_FACTORS = {
@@ -31,7 +29,7 @@ const RISK_FACTORS = {
 // Analyze a transaction for fraud risk
 export const analyzeTransaction = async (transaction: Transaction): Promise<boolean> => {
   try {
-    const startTime = performance.now();
+    const startTime = measureOperationTime("Starting fraud analysis");
     
     console.log(`Starting fraud analysis for transaction ${transaction.id}`);
     
@@ -63,7 +61,7 @@ export const analyzeTransaction = async (transaction: Transaction): Promise<bool
 
 // Calculate initial risk score for a transaction
 const calculateInitialRiskScore = async (transaction: Transaction): Promise<number> => {
-  const startTime = performance.now();
+  const startTime = measureOperationTime("Risk score calculation");
   
   let riskScore = 0;
   
