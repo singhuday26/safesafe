@@ -2,8 +2,8 @@
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { FraudMonitoringDashboard } from "@/components/dashboard/FraudMonitoringDashboard";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import FraudMonitoringDashboard from "@/components/dashboard/FraudMonitoringDashboard";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -28,7 +28,7 @@ const FraudMonitoring: React.FC = () => {
       toast({
         title: "Demo Data Generated",
         description: "Fraud detection demo data has been successfully created.",
-        variant: "success"
+        variant: "default"
       });
     } catch (error) {
       toast({

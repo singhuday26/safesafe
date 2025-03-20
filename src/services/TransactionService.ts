@@ -1,3 +1,4 @@
+
 import { Transaction } from "@/types/database";
 import { analyzeTransaction } from "@/services/FraudDetectionService";
 
@@ -21,6 +22,7 @@ const generateSampleTransactions = () => {
       
       transactions.push({
         id: `txn_${i}_${j}`,
+        user_id: 'demo-user',
         merchant,
         amount,
         currency: 'USD',
@@ -28,13 +30,12 @@ const generateSampleTransactions = () => {
         status: 'approved',
         risk_score: 0,
         timestamp: new Date(Date.now() - (i * 60 + Math.floor(Math.random() * 60)) * 60 * 1000).toISOString(),
+        created_at: new Date(Date.now() - (i * 60 + Math.floor(Math.random() * 60)) * 60 * 1000).toISOString(),
         card_last4: paymentMethod.includes('card') ? Math.floor(Math.random() * 9000 + 1000).toString() : undefined,
-        location: { country: 'US', city },
-        customer: {
-          name: `Customer ${i}_${j}`,
-          email: `customer_${i}_${j}@example.com`
-        },
-        type: 'payment'
+        city,
+        country: 'US',
+        type: 'payment',
+        transaction_number: `TX-${i}${j}`
       });
     }
   }
@@ -56,7 +57,7 @@ const calculateRiskScore = (transactions: Transaction[]): Transaction[] => {
   
   // Additional risk factors
   const highValueTransactions = transactionsInLastHour.filter(t => t.amount > 1000).length;
-  const uniqueLocations = new Set(transactionsInLastHour.map(t => t.location?.city)).size;
+  const uniqueLocations = new Set(transactionsInLastHour.map(t => t.city)).size;
   
   let riskScore = baseRiskScore;
   if (highValueTransactions > 0) riskScore += 10;

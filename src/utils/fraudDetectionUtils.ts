@@ -1,99 +1,134 @@
 
-// Risk level categories
-export type RiskLevel = "low" | "medium" | "high" | "critical";
-
-// Get risk level based on score
-export const getRiskLevel = (score: number): RiskLevel => {
-  if (score < 30) return "low";
-  if (score < 60) return "medium";
-  if (score < 80) return "high";
-  return "critical";
+// Standard risk evaluation functions
+export const getRiskLevel = (score: number): string => {
+  if (score >= 80) return 'critical';
+  if (score >= 60) return 'high';
+  if (score >= 30) return 'medium';
+  return 'low';
 };
 
-// Get risk color based on score
 export const getRiskColor = (score: number): string => {
-  const level = getRiskLevel(score);
-  switch (level) {
-    case "low":
-      return "bg-green-500 text-green-500";
-    case "medium":
-      return "bg-yellow-500 text-yellow-500";
-    case "high":
-      return "bg-orange-500 text-orange-500";
-    case "critical":
-      return "bg-red-500 text-red-500";
-    default:
-      return "bg-gray-500 text-gray-500";
-  }
+  if (score >= 80) return 'bg-red-500 text-red-500';
+  if (score >= 60) return 'bg-orange-500 text-orange-500';
+  if (score >= 30) return 'bg-yellow-500 text-yellow-500';
+  return 'bg-green-500 text-green-500';
 };
 
-// Time periods for analysis
-export type TimePeriod = "24h" | "7d" | "30d" | "all";
-
-// Format currency
-export const formatCurrency = (amount: number, currency: string = "USD"): string => {
+export const formatCurrency = (amount: number, currency: string): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency
+    currency: currency || 'USD'
   }).format(amount);
 };
 
-// Format date
-export const formatDate = (date: Date): string => {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
+export const formatDate = (date: string): string => {
+  return new Date(date).toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date);
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  });
 };
 
-// Simple utility function to measure performance - for debugging only
-export const measureOperationTime = (operation: string, startTime: number): void => {
-  const endTime = performance.now();
-  const duration = endTime - startTime;
-  console.log(`Operation [${operation}] took ${duration.toFixed(2)}ms`);
-};
+export type TimePeriod = '24h' | '7d' | '30d' | 'all';
 
-// Format number with K/M/B suffix for large numbers
-export const formatLargeNumber = (num: number): string => {
-  if (num >= 1000000000) {
-    return (num / 1000000000).toFixed(1) + 'B';
+export const getTimeRangeFromPeriod = (period: TimePeriod): { startDate?: Date, endDate?: Date } => {
+  const endDate = new Date();
+  let startDate: Date | undefined;
+  
+  switch (period) {
+    case "24h":
+      startDate = new Date();
+      startDate.setHours(startDate.getHours() - 24);
+      break;
+    case "7d":
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+      break;
+    case "30d":
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 30);
+      break;
+    case "all":
+      startDate = undefined; // No start date limit
+      break;
   }
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M';
+  
+  return { startDate, endDate };
+};
+
+// Analyze transaction risk
+export const analyzeTransactionRisk = (transaction: any): {
+  score: number;
+  factors: Array<{ name: string; score: number; details?: any }>;
+} => {
+  const factors = [];
+  let totalScore = 0;
+  
+  // Amount factor
+  if (transaction.amount > 1000) {
+    const amountFactor = {
+      name: 'High Value Transaction',
+      score: 20,
+      details: { threshold: 1000, actual: transaction.amount }
+    };
+    factors.push(amountFactor);
+    totalScore += amountFactor.score;
   }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K';
+  
+  // Time of day factor
+  const hour = new Date(transaction.timestamp).getHours();
+  if (hour >= 0 && hour <= 5) {
+    const timeFactor = {
+      name: 'Unusual Hour',
+      score: 15,
+      details: { timeOfDay: `${hour}:00` }
+    };
+    factors.push(timeFactor);
+    totalScore += timeFactor.score;
   }
-  return num.toString();
+  
+  // Payment method factor
+  if (transaction.payment_method === 'bitcoin' || transaction.payment_method === 'crypto') {
+    const methodFactor = {
+      name: 'High-Risk Payment Method',
+      score: 25,
+      details: { method: transaction.payment_method }
+    };
+    factors.push(methodFactor);
+    totalScore += methodFactor.score;
+  }
+  
+  // New merchant factor
+  if (transaction.is_new_merchant) {
+    const merchantFactor = {
+      name: 'New Merchant',
+      score: 10
+    };
+    factors.push(merchantFactor);
+    totalScore += merchantFactor.score;
+  }
+  
+  // Cap at 100
+  totalScore = Math.min(totalScore, 100);
+  
+  return {
+    score: totalScore,
+    factors
+  };
 };
 
-// Get risk severity from risk score
-export const getRiskSeverity = (score: number): string => {
-  if (score >= 80) return "Critical";
-  if (score >= 60) return "High";
-  if (score >= 30) return "Medium";
-  return "Low";
+export const getRiskCategoryLabel = (score: number): string => {
+  if (score >= 80) return 'Critical';
+  if (score >= 60) return 'High';
+  if (score >= 30) return 'Medium';
+  return 'Low';
 };
 
-// Check if a transaction amount is suspicious (very round number)
-export const isRoundAmount = (amount: number): boolean => {
-  // Check if amount has no decimal places or is a multiple of 100/1000
-  return amount % 1 === 0 || amount % 100 === 0 || amount % 1000 === 0;
-};
-
-// Utility to create an ISO date string for a relative time in the past
-export const getRelativeTimeISOString = (days: number): string => {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  return date.toISOString();
-};
-
-// Check if a time of day is unusual
-export const isUnusualTime = (date: Date): boolean => {
-  const hour = date.getHours();
-  // Late night hours (0-5 AM)
-  return hour >= 0 && hour <= 5;
+export const getRiskCategoryColor = (score: number): string => {
+  if (score >= 80) return 'text-red-500';
+  if (score >= 60) return 'text-orange-500';
+  if (score >= 30) return 'text-yellow-500';
+  return 'text-green-500';
 };

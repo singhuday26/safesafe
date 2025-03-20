@@ -1,12 +1,14 @@
+
 import React from "react";
 import { AlertTriangle, CheckCircle, Clock, Search } from "lucide-react";
 import { Transaction } from "@/types/database";
+import { ExtendedTransaction } from "@/types/customer";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { FadeIn } from "../animations/FadeIn";
 
 interface TransactionListProps {
-  transactions: Transaction[];
+  transactions: (Transaction | ExtendedTransaction)[];
   className?: string;
 }
 
@@ -74,50 +76,55 @@ const TransactionList: React.FC<TransactionListProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {transactions.map((transaction, index) => (
-              <tr 
-                key={transaction.id} 
-                className="hover:bg-muted/30 transition-colors"
-                style={{
-                  animation: `fadeIn 0.2s ease-out forwards ${index * 0.05}s`
-                }}
-              >
-                <td className="py-3 px-4 text-sm">
-                  <div className="font-medium">{transaction.merchant}</div>
-                  <div className="text-xs text-muted-foreground">{transaction.customer.name}</div>
-                </td>
-                <td className="py-3 px-4 text-sm font-medium">
-                  {formatCurrency(transaction.amount, transaction.currency)}
-                </td>
-                <td className="py-3 px-4 text-sm">
-                  <Badge variant="outline">
-                    {transaction.payment_method.split('_').map(word => 
-                      word.charAt(0).toUpperCase() + word.slice(1)
-                    ).join(' ')}
-                  </Badge>
-                </td>
-                <td className="py-3 px-4">
-                  <Badge variant={
-                    transaction.status === 'approved' ? 'success' :
-                    transaction.status === 'declined' ? 'destructive' :
-                    'warning'
-                  }>
-                    {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-                  </Badge>
-                </td>
-                <td className="py-3 px-4">
-                  <div className={cn(
-                    "text-sm font-medium", 
-                    getRiskColor(transaction.risk_score)
-                  )}>
-                    {transaction.risk_score}%
-                  </div>
-                </td>
-                <td className="py-3 px-4 text-sm text-muted-foreground">
-                  {formatDate(transaction.timestamp)}
-                </td>
-              </tr>
-            ))}
+            {transactions.map((transaction, index) => {
+              // Safely access customer property
+              const customerName = (transaction as ExtendedTransaction).customer?.name || 'Unknown';
+              
+              return (
+                <tr 
+                  key={transaction.id} 
+                  className="hover:bg-muted/30 transition-colors"
+                  style={{
+                    animation: `fadeIn 0.2s ease-out forwards ${index * 0.05}s`
+                  }}
+                >
+                  <td className="py-3 px-4 text-sm">
+                    <div className="font-medium">{transaction.merchant}</div>
+                    <div className="text-xs text-muted-foreground">{customerName}</div>
+                  </td>
+                  <td className="py-3 px-4 text-sm font-medium">
+                    {formatCurrency(transaction.amount, transaction.currency)}
+                  </td>
+                  <td className="py-3 px-4 text-sm">
+                    <Badge variant="outline">
+                      {transaction.payment_method.split('_').map(word => 
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                      ).join(' ')}
+                    </Badge>
+                  </td>
+                  <td className="py-3 px-4">
+                    <Badge variant={
+                      transaction.status === 'approved' ? 'default' :
+                      transaction.status === 'declined' ? 'destructive' :
+                      'outline'
+                    }>
+                      {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                    </Badge>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className={cn(
+                      "text-sm font-medium", 
+                      getRiskColor(transaction.risk_score)
+                    )}>
+                      {transaction.risk_score}%
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-muted-foreground">
+                    {formatDate(transaction.timestamp)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
