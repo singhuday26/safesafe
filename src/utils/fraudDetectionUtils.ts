@@ -21,14 +21,34 @@ export const formatCurrency = (amount: number, currency: string): string => {
   }).format(amount);
 };
 
-export const formatDate = (date: string): string => {
-  return new Date(date).toLocaleString('en-US', {
+export const formatDate = (date: string | Date): string => {
+  const dateObject = typeof date === 'string' ? new Date(date) : date;
+  return dateObject.toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
     minute: 'numeric',
     hour12: true
   });
+};
+
+export const formatLargeNumber = (num: number): string => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  }
+  return num.toString();
+};
+
+export const measureOperationTime = (operation: () => any) => {
+  const start = performance.now();
+  const result = operation();
+  const end = performance.now();
+  return {
+    result,
+    durationMs: end - start
+  };
 };
 
 export type TimePeriod = '24h' | '7d' | '30d' | 'all';

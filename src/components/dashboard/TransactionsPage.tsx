@@ -109,13 +109,17 @@ const createSampleTransactions = (): ExtendedTransaction[] => {
   ];
 
   // Convert to ExtendedTransaction with customer data
-  return baseTransactions.map((transaction, index) => ({
-    ...transaction,
-    customer: {
-      name: ["Alice Smith", "Bob Johnson", "Charlie Brown", "Diana Prince", "Edward Norton", "Fiona Apple", "George Clooney"][index % 7],
-      email: [`customer${index}@example.com`]
-    } as Customer
-  }));
+  return baseTransactions.map((transaction, index) => {
+    // Add customer data
+    const extendedTransaction: ExtendedTransaction = {
+      ...transaction,
+      customer: {
+        name: ["Alice Smith", "Bob Johnson", "Charlie Brown", "Diana Prince", "Edward Norton", "Fiona Apple", "George Clooney"][index % 7],
+        email: `customer${index}@example.com`
+      }
+    };
+    return extendedTransaction;
+  });
 };
 
 const sampleTransactions = createSampleTransactions();

@@ -1,4 +1,6 @@
 
+import { Transaction } from "./database";
+
 export interface Customer {
   name: string;
   email: string;

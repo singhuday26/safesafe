@@ -45,7 +45,7 @@ import {
   PieChart,
   Pie
 } from "recharts";
-import { formatDate, formatLargeNumber } from "@/utils/fraudDetectionUtils";
+import { formatDate, formatCurrency, formatLargeNumber } from "@/utils/fraudDetectionUtils";
 import RiskDetails from "./RiskDetails";
 import FullRiskReport from "./FullRiskReport";
 
@@ -337,7 +337,7 @@ const FraudMonitoringDashboard: React.FC<FraudMonitoringDashboardProps> = ({ use
                         <div className="ml-3">
                           <div className="flex items-center">
                             <h4 className="font-medium">
-                              {alert.detection_method.replace(/_/g, ' ')}
+                              {alert.detection_method?.replace(/_/g, ' ')}
                             </h4>
                             <Badge 
                               className={`ml-2 ${
@@ -347,18 +347,18 @@ const FraudMonitoringDashboard: React.FC<FraudMonitoringDashboardProps> = ({ use
                                 'bg-blue-500'
                               }`}
                             >
-                              {alert.severity.toUpperCase()}
+                              {alert.severity?.toUpperCase()}
                             </Badge>
                           </div>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            Transaction #{alert.transaction_id.substring(0, 8)} • {formatDate(new Date(alert.created_at))}
+                            Transaction #{alert.transaction_id?.substring(0, 8)} • {formatDate(alert.created_at)}
                           </p>
                         </div>
                       </div>
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => openFullReport(alert.transaction_id)}
+                        onClick={() => openFullReport(alert.transaction_id || '')}
                       >
                         View Details
                       </Button>
@@ -460,7 +460,7 @@ const FraudMonitoringDashboard: React.FC<FraudMonitoringDashboardProps> = ({ use
                           <div className="ml-3">
                             <div className="flex items-center">
                               <h4 className="font-medium">
-                                {alert.detection_method.replace(/_/g, ' ')}
+                                {alert.detection_method?.replace(/_/g, ' ')}
                               </h4>
                               <Badge 
                                 className={`ml-2 ${
@@ -470,21 +470,21 @@ const FraudMonitoringDashboard: React.FC<FraudMonitoringDashboardProps> = ({ use
                                   'bg-blue-500'
                                 }`}
                               >
-                                {alert.severity.toUpperCase()}
+                                {alert.severity?.toUpperCase()}
                               </Badge>
                               <Badge variant="outline" className="ml-2">
-                                {alert.status.replace(/_/g, ' ').toUpperCase()}
+                                {alert.status?.replace(/_/g, ' ').toUpperCase()}
                               </Badge>
                             </div>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Transaction #{alert.transaction_id.substring(0, 8)} • {formatDate(new Date(alert.created_at))}
+                              Transaction #{alert.transaction_id?.substring(0, 8)} • {formatDate(alert.created_at)}
                             </p>
                           </div>
                         </div>
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => openFullReport(alert.transaction_id)}
+                          onClick={() => openFullReport(alert.transaction_id || '')}
                         >
                           View Full Report
                         </Button>
@@ -574,7 +574,7 @@ const FraudMonitoringDashboard: React.FC<FraudMonitoringDashboardProps> = ({ use
                             {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)} - {transaction.merchant}
                           </h4>
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {formatCurrency(transaction.amount, transaction.currency)} • {formatDate(new Date(transaction.timestamp))}
+                            {formatCurrency(transaction.amount, transaction.currency)} • {formatDate(transaction.timestamp)}
                           </p>
                         </div>
                         <Badge 

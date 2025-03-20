@@ -6,6 +6,7 @@ import { ExtendedTransaction } from "@/types/customer";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { FadeIn } from "../animations/FadeIn";
+import { formatCurrency, formatDate } from "@/utils/fraudDetectionUtils";
 
 interface TransactionListProps {
   transactions: (Transaction | ExtendedTransaction)[];
@@ -16,25 +17,8 @@ const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
   className
 }) => {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-      hour12: true
-    });
-  };
-
-  const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency
-    }).format(amount);
-  };
-
   const getRiskColor = (score: number) => {
-    if (score < 30) return 'text-yellow-500';
+    if (score < 30) return 'text-green-500';
     if (score < 60) return 'text-yellow-500';
     return 'text-red-500';
   };
@@ -77,50 +61,64 @@ const TransactionList: React.FC<TransactionListProps> = ({
           </thead>
           <tbody className="divide-y divide-border">
             {transactions.map((transaction, index) => {
-              // Safely access customer property
-              const customerName = (transaction as ExtendedTransaction).customer?.name || 'Unknown';
+              // Safely access transaction properties
+              const transactionId = 'id' in transaction ? transaction.id : `tx-${index}`;
+              const customerName = 'customer' in transaction && transaction.customer 
+                ? transaction.customer.name 
+                : 'Unknown';
+              const merchant = 'merchant' in transaction ? transaction.merchant : 'Unknown';
+              const amount = 'amount' in transaction ? transaction.amount : 0;
+              const currency = 'currency' in transaction ? transaction.currency : 'USD';
+              const paymentMethod = 'payment_method' in transaction 
+                ? transaction.payment_method 
+                : ('paymentMethod' in transaction ? transaction.paymentMethod : 'Unknown');
+              const status = 'status' in transaction ? transaction.status : 'approved';
+              const riskScore = 'risk_score' in transaction 
+                ? transaction.risk_score 
+                : ('riskScore' in transaction ? transaction.riskScore : 0);
+              const timestamp = 'timestamp' in transaction ? transaction.timestamp : new Date().toISOString();
               
               return (
                 <tr 
-                  key={transaction.id} 
+                  key={transactionId} 
                   className="hover:bg-muted/30 transition-colors"
                   style={{
                     animation: `fadeIn 0.2s ease-out forwards ${index * 0.05}s`
                   }}
                 >
                   <td className="py-3 px-4 text-sm">
-                    <div className="font-medium">{transaction.merchant}</div>
+                    <div className="font-medium">{merchant}</div>
                     <div className="text-xs text-muted-foreground">{customerName}</div>
                   </td>
                   <td className="py-3 px-4 text-sm font-medium">
-                    {formatCurrency(transaction.amount, transaction.currency)}
+                    {formatCurrency(amount, currency)}
                   </td>
                   <td className="py-3 px-4 text-sm">
                     <Badge variant="outline">
-                      {transaction.payment_method.split('_').map(word => 
+                      {paymentMethod.split('_').map(word => 
                         word.charAt(0).toUpperCase() + word.slice(1)
                       ).join(' ')}
                     </Badge>
                   </td>
                   <td className="py-3 px-4">
                     <Badge variant={
-                      transaction.status === 'approved' ? 'default' :
-                      transaction.status === 'declined' ? 'destructive' :
+                      status === 'approved' ? 'default' :
+                      status === 'declined' ? 'destructive' :
                       'outline'
                     }>
-                      {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
                     </Badge>
                   </td>
                   <td className="py-3 px-4">
                     <div className={cn(
                       "text-sm font-medium", 
-                      getRiskColor(transaction.risk_score)
+                      getRiskColor(riskScore)
                     )}>
-                      {transaction.risk_score}%
+                      {riskScore}%
                     </div>
                   </td>
                   <td className="py-3 px-4 text-sm text-muted-foreground">
-                    {formatDate(transaction.timestamp)}
+                    {formatDate(timestamp)}
                   </td>
                 </tr>
               );

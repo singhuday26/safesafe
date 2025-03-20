@@ -20,14 +20,19 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
   delay = 0
 }) => {
   // Handle both Transaction and ExtendedTransaction
-  const customer = (transaction as ExtendedTransaction).customer;
+  const customer = 'customer' in transaction ? transaction.customer : undefined;
   const location = {
-    city: transaction.city,
-    country: transaction.country
+    city: 'city' in transaction ? transaction.city : 
+          'location' in transaction && transaction.location ? transaction.location.city : undefined,
+    country: 'country' in transaction ? transaction.country : 
+            'location' in transaction && transaction.location ? transaction.location.country : undefined
   };
   
-  const riskLevel = getRiskLevel(transaction.risk_score);
-  const riskColor = getRiskColor(transaction.risk_score);
+  const riskScore = 'risk_score' in transaction ? transaction.risk_score : 
+                   'riskScore' in transaction ? transaction.riskScore : 0;
+  
+  const riskLevel = getRiskLevel(riskScore);
+  const riskColor = getRiskColor(riskScore);
   
   const statusIcon = {
     approved: <CheckCircle className="h-4 w-4 text-green-500" />,
@@ -35,8 +40,12 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     flagged: <Clock className="h-4 w-4 text-yellow-500" />
   };
   
-  const formattedAmount = formatCurrency(transaction.amount, transaction.currency);
-  const formattedDate = new Date(transaction.timestamp).toLocaleString('en-US', {
+  const amount = 'amount' in transaction ? transaction.amount : 0;
+  const currency = 'currency' in transaction ? transaction.currency : 'USD';
+  const formattedAmount = formatCurrency(amount, currency);
+  
+  const timestamp = 'timestamp' in transaction ? transaction.timestamp : new Date().toISOString();
+  const formattedDate = new Date(timestamp).toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
@@ -74,6 +83,12 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     }
   };
 
+  const transactionType = 'type' in transaction ? transaction.type : 'payment';
+  const status = 'status' in transaction ? transaction.status : 'approved';
+  const paymentMethod = 'payment_method' in transaction ? transaction.payment_method : 
+                        'paymentMethod' in transaction ? transaction.paymentMethod : 'credit_card';
+  const cardLast4 = 'card_last4' in transaction ? transaction.card_last4 : undefined;
+
   return (
     <FadeIn 
       delay={delay}
@@ -85,23 +100,23 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
       <div className="flex justify-between mb-4">
         <div>
           <div className="flex items-center">
-            <h3 className="font-medium text-sm mr-2">{getTypeLabel(transaction.type)}</h3>
+            <h3 className="font-medium text-sm mr-2">{getTypeLabel(transactionType)}</h3>
             <div className="flex items-center text-sm">
-              {statusIcon[transaction.status as keyof typeof statusIcon]}
+              {statusIcon[status as keyof typeof statusIcon]}
               <span className={cn(
                 "ml-1",
-                transaction.status === 'approved' ? 'text-green-500' : 
-                transaction.status === 'declined' ? 'text-red-500' : 
+                status === 'approved' ? 'text-green-500' : 
+                status === 'declined' ? 'text-red-500' : 
                 'text-yellow-500'
               )}>
-                {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                {status.charAt(0).toUpperCase() + status.slice(1)}
               </span>
             </div>
           </div>
           <p className="text-xl font-bold mt-1">{formattedAmount}</p>
         </div>
         <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
-          <span className="text-sm font-bold">{transaction.risk_score}</span>
+          <span className="text-sm font-bold">{riskScore}</span>
         </div>
       </div>
       
@@ -114,8 +129,8 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Payment Method</span>
           <span className="font-medium">
-            {(paymentNames as any)[transaction.payment_method] || transaction.payment_method}
-            {transaction.card_last4 && ` •••• ${transaction.card_last4}`}
+            {(paymentNames as any)[paymentMethod] || paymentMethod}
+            {cardLast4 && ` •••• ${cardLast4}`}
           </span>
         </div>
         
@@ -137,7 +152,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Risk Score</span>
           <span className={cn("font-medium", riskColor.replace('bg-', 'text-'))}>
-            {transaction.risk_score} - {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
+            {riskScore} - {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
           </span>
         </div>
       </div>
@@ -147,7 +162,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
           View Details
         </button>
         
-        {transaction.status === 'flagged' && (
+        {status === 'flagged' && (
           <div className="flex space-x-2">
             <button className="text-sm font-medium text-green-500 hover:text-green-600 click-bounce">
               Approve
