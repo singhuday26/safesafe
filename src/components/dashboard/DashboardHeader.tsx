@@ -3,7 +3,13 @@ import React from "react";
 import { Clock, Bell } from "lucide-react";
 import { FadeIn } from "../animations/FadeIn";
 
-const DashboardHeader: React.FC = () => {
+interface DashboardHeaderProps {
+  heading: string;
+  text: string;
+  children?: React.ReactNode;
+}
+
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({ heading, text, children }) => {
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -14,7 +20,8 @@ const DashboardHeader: React.FC = () => {
     <FadeIn className="mb-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Fraud Detection Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{heading}</h1>
+          <p className="text-muted-foreground mt-1">{text}</p>
           <div className="flex items-center mt-2 text-muted-foreground">
             <Clock className="h-4 w-4 mr-2" />
             <span>{currentDate}</span>
@@ -27,9 +34,7 @@ const DashboardHeader: React.FC = () => {
             <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
           </button>
           
-          <button className="ml-2 bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center click-bounce">
-            Generate Report
-          </button>
+          {children}
         </div>
       </div>
     </FadeIn>

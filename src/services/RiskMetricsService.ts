@@ -1,10 +1,9 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { RiskMetrics as DBRiskMetrics } from "@/types/database";
 import { Transaction } from "@/types/database";
 import { fetchTransactions } from "./TransactionService";
 
-// Custom interface for frontend risk metrics
+// Custom interface for frontend risk metrics (not related to DB RiskMetrics)
 export interface RiskMetricsData {
   overall_risk_score: number;
   transaction_velocity: number;
@@ -37,10 +36,12 @@ export const calculateRiskMetrics = async (): Promise<RiskMetricsData> => {
       overall_risk_score += 10;
     }
     
-    // Check for unusual locations - this is a safe fallback if location is not available
-    const uniqueCountries = new Set(recentTransactions
-      .filter(t => t.country)
-      .map(t => t.country)).size;
+    // Check for unusual locations - handle differently since location might not be directly accessible
+    const uniqueCountries = new Set(
+      recentTransactions
+        .filter(t => t.country !== undefined)
+        .map(t => t.country)
+    ).size;
       
     if (uniqueCountries > 2) {
       overall_risk_score += 20;
@@ -68,7 +69,7 @@ export const fetchRiskMetrics = async (): Promise<RiskMetricsData> => {
 };
 
 // Create or update risk metrics for the user
-export const updateRiskMetrics = async (metrics: Partial<DBRiskMetrics>): Promise<DBRiskMetrics | null> => {
+export const updateRiskMetrics = async (metrics: any): Promise<any | null> => {
   const { data: userData } = await supabase.auth.getUser();
   
   if (!userData.user) {
@@ -127,7 +128,7 @@ export const updateRiskMetrics = async (metrics: Partial<DBRiskMetrics>): Promis
     result = data;
   }
 
-  return result as DBRiskMetrics;
+  return result;
 };
 
 // Subscribe to risk metrics updates

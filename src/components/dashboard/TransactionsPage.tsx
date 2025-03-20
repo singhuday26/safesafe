@@ -110,11 +110,13 @@ const createSampleTransactions = (): ExtendedTransaction[] => {
 
   // Convert to ExtendedTransaction with customer data
   return baseTransactions.map((transaction, index) => {
+    const customerNames = ["Alice Smith", "Bob Johnson", "Charlie Brown", "Diana Prince", "Edward Norton", "Fiona Apple", "George Clooney"];
+    
     // Add customer data
     const extendedTransaction: ExtendedTransaction = {
       ...transaction,
       customer: {
-        name: ["Alice Smith", "Bob Johnson", "Charlie Brown", "Diana Prince", "Edward Norton", "Fiona Apple", "George Clooney"][index % 7],
+        name: customerNames[index % 7],
         email: `customer${index}@example.com`
       }
     };

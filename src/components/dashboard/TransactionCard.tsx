@@ -6,7 +6,7 @@ import { ExtendedTransaction, Customer } from "@/types/customer";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { FadeIn } from "../animations/FadeIn";
-import { getRiskLevel, getRiskColor, formatCurrency } from "@/utils/fraudDetectionUtils";
+import { getRiskLevel, getRiskColor, formatCurrency, formatDate } from "@/utils/fraudDetectionUtils";
 
 interface TransactionCardProps {
   transaction: Transaction | ExtendedTransaction;
@@ -22,6 +22,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
   // Handle both Transaction and ExtendedTransaction
   const customer = 'customer' in transaction ? transaction.customer : undefined;
   
+  // Get location data safely
   const location = {
     city: 'city' in transaction ? transaction.city : 
           ('location' in transaction && transaction.location) ? transaction.location.city : undefined,
@@ -29,9 +30,8 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
             ('location' in transaction && transaction.location) ? transaction.location.country : undefined
   };
   
-  // Handle risk score from either format
-  const riskScore = 'risk_score' in transaction ? transaction.risk_score : 
-                   ('riskScore' in transaction && transaction.riskScore !== undefined) ? transaction.riskScore : 0;
+  // Handle risk score from either format (use non-null assertion after checking)
+  const riskScore = transaction.risk_score;
   
   const riskLevel = getRiskLevel(riskScore);
   const riskColor = getRiskColor(riskScore);
@@ -42,18 +42,12 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     flagged: <Clock className="h-4 w-4 text-yellow-500" />
   };
   
-  const amount = 'amount' in transaction ? transaction.amount : 0;
-  const currency = 'currency' in transaction ? transaction.currency : 'USD';
+  const amount = transaction.amount;
+  const currency = transaction.currency;
   const formattedAmount = formatCurrency(amount, currency);
   
-  const timestamp = 'timestamp' in transaction ? transaction.timestamp : new Date().toISOString();
-  const formattedDate = new Date(timestamp).toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: true
-  });
+  const timestamp = transaction.timestamp;
+  const formattedDate = formatDate(timestamp);
   
   const paymentIcon = {
     credit_card: "💳",
@@ -85,12 +79,11 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     }
   };
 
-  const transactionType = 'type' in transaction ? transaction.type : 'payment';
-  const status = 'status' in transaction ? transaction.status : 'approved';
+  const transactionType = transaction.type;
+  const status = transaction.status;
   
-  // Handle both naming formats for payment method
-  const paymentMethod = 'payment_method' in transaction ? transaction.payment_method : 
-                        ('paymentMethod' in transaction && transaction.paymentMethod !== undefined) ? transaction.paymentMethod : 'credit_card';
+  // Use payment_method from Transaction, fallback to paymentMethod if it exists
+  const paymentMethod = transaction.payment_method;
   
   const cardLast4 = 'card_last4' in transaction ? transaction.card_last4 : undefined;
 

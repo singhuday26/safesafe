@@ -6,7 +6,7 @@ import { ExtendedTransaction } from "@/types/customer";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { FadeIn } from "../animations/FadeIn";
-import { formatCurrency, formatDate } from "@/utils/fraudDetectionUtils";
+import { formatCurrency, formatDate, getRiskCategoryColor } from "@/utils/fraudDetectionUtils";
 
 interface TransactionListProps {
   transactions: (Transaction | ExtendedTransaction)[];
@@ -66,25 +66,17 @@ const TransactionList: React.FC<TransactionListProps> = ({
               const customerName = 'customer' in transaction && transaction.customer 
                 ? transaction.customer.name 
                 : 'Unknown';
-              const merchant = 'merchant' in transaction ? transaction.merchant : 'Unknown';
-              const amount = 'amount' in transaction ? transaction.amount : 0;
-              const currency = 'currency' in transaction ? transaction.currency : 'USD';
+              const merchant = transaction.merchant;
+              const amount = transaction.amount;
+              const currency = transaction.currency;
               
-              const paymentMethod = 'payment_method' in transaction 
-                ? transaction.payment_method 
-                : ('paymentMethod' in transaction && transaction.paymentMethod !== undefined) 
-                  ? transaction.paymentMethod 
-                  : 'Unknown';
+              const paymentMethod = transaction.payment_method;
                   
-              const status = 'status' in transaction ? transaction.status : 'approved';
+              const status = transaction.status;
               
-              const riskScore = 'risk_score' in transaction 
-                ? transaction.risk_score 
-                : ('riskScore' in transaction && transaction.riskScore !== undefined) 
-                  ? transaction.riskScore 
-                  : 0;
+              const riskScore = transaction.risk_score;
                   
-              const timestamp = 'timestamp' in transaction ? transaction.timestamp : new Date().toISOString();
+              const timestamp = transaction.timestamp;
               
               return (
                 <tr 
