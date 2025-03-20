@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +17,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const SecuritySettings = lazy(() => import("./pages/SecuritySettings"));
 const Landing = lazy(() => import("./pages/Landing"));
+const FraudMonitoring = lazy(() => import("./pages/FraudMonitoring"));
 
 // New: Import TransactionsPage from the dashboard folder
 const TransactionsPage = lazy(() =>
@@ -130,7 +132,17 @@ const AppRoutes = () => {
           }
         />
 
-        {/* New route for TransactionsPage */}
+        {/* New route for Fraud Monitoring */}
+        <Route
+          path="/fraud-monitoring"
+          element={
+            <ProtectedRoute>
+              <FraudMonitoring />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Route for TransactionsPage */}
         <Route
           path="/transactions"
           element={
