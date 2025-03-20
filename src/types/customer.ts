@@ -1,5 +1,8 @@
 
-import { Transaction } from "./database";
+import { Tables } from "@/integrations/supabase/types";
+
+// Define Transaction from Supabase database
+export type Transaction = Tables<"transactions">; 
 
 export interface Customer {
   name: string;
@@ -25,4 +28,13 @@ export interface ExtendedTransaction extends Transaction {
     country?: string;
     city?: string;
   };
+  id: string;
+  // Adding other Transaction fields that might be used elsewhere
+  user_id: string;
+  transaction_number?: string;
+  created_at: string;
+  city?: string;
+  country?: string;
+  ip_address?: string;
+  device_info?: any;
 }

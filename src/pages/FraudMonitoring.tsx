@@ -7,6 +7,10 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
+interface FraudMonitoringDashboardProps {
+  userId?: string;
+}
+
 const FraudMonitoring: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -64,7 +68,7 @@ const FraudMonitoring: React.FC = () => {
       </DashboardHeader>
 
       <div className="mt-8">
-        <FraudMonitoringDashboard userId={user?.id} />
+        {user && <FraudMonitoringDashboard userId={user.id} />}
       </div>
     </div>
   );
