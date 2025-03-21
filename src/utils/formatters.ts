@@ -79,3 +79,38 @@ export const formatPaymentMethod = (method: string): string => {
     word.charAt(0).toUpperCase() + word.slice(1)
   ).join(' ');
 };
+
+/**
+ * Format alert severity to color class
+ */
+export const getSeverityColor = (severity: string): string => {
+  switch (severity) {
+    case 'critical': return 'text-red-600';
+    case 'high': return 'text-orange-600';
+    case 'medium': return 'text-amber-600';
+    case 'low': return 'text-green-600';
+    default: return 'text-slate-600';
+  }
+};
+
+/**
+ * Format alert type to display name
+ */
+export const formatAlertType = (type: string): string => {
+  return type.split('_').map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+};
+
+/**
+ * Get badge variant based on alert severity
+ */
+export const getSeverityVariant = (severity: string): 'default' | 'destructive' | 'outline' | 'secondary' => {
+  switch (severity) {
+    case 'critical': return 'destructive';
+    case 'high': return 'destructive';
+    case 'medium': return 'default';
+    case 'low': return 'secondary';
+    default: return 'outline';
+  }
+};

@@ -5,34 +5,48 @@ import { Badge } from "@/components/ui/badge";
 import { Transaction } from "@/types/database";
 import { FadeIn } from "@/components/animations/FadeIn";
 import { AlertTriangle, CheckCircle, Clock } from "lucide-react";
-import { formatCurrency, formatDate } from "@/utils/fraudDetectionUtils";
+import { formatCurrency, formatDate, formatPaymentMethod } from "@/utils/formatters";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface RealtimeMonitoringProps {
-  userId: string;
+  userId?: string;
 }
 
 const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ userId }) => {
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  const effectiveUserId = userId || user?.id;
 
   useEffect(() => {
+    if (!effectiveUserId) return;
+    
     // Fetch initial recent transactions
     const fetchRecentTransactions = async () => {
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('timestamp', { ascending: false })
-        .limit(5);
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('user_id', effectiveUserId)
+          .order('timestamp', { ascending: false })
+          .limit(5);
+          
+        if (error) {
+          console.error('Error fetching recent transactions:', error);
+          return;
+        }
         
-      if (error) {
-        console.error('Error fetching recent transactions:', error);
-        return;
+        setRecentTransactions(data as Transaction[]);
+      } catch (err) {
+        console.error('Error in fetchRecentTransactions:', err);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setRecentTransactions(data as Transaction[]);
     };
     
     fetchRecentTransactions();
@@ -44,7 +58,7 @@ const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ userId }) => {
         event: 'INSERT', 
         schema: 'public', 
         table: 'transactions',
-        filter: `user_id=eq.${userId}`
+        filter: `user_id=eq.${effectiveUserId}`
       }, (payload) => {
         const newTransaction = payload.new as Transaction;
         
@@ -52,13 +66,13 @@ const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ userId }) => {
         if (newTransaction.risk_score >= 70) {
           toast({
             title: "High Risk Transaction Detected",
-            description: `${formatCurrency(newTransaction.amount, newTransaction.currency)} to ${newTransaction.merchant}`,
+            description: `${formatCurrency(Number(newTransaction.amount), newTransaction.currency)} to ${newTransaction.merchant}`,
             variant: "destructive"
           });
         } else {
           toast({
             title: "New Transaction",
-            description: `${formatCurrency(newTransaction.amount, newTransaction.currency)} to ${newTransaction.merchant}`,
+            description: `${formatCurrency(Number(newTransaction.amount), newTransaction.currency)} to ${newTransaction.merchant}`,
           });
         }
         
@@ -71,7 +85,35 @@ const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ userId }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, toast]);
+  }, [effectiveUserId, toast]);
+  
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Real-time Monitoring</CardTitle>
+          <CardDescription>Live transaction activity</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="p-4 rounded-lg border animate-pulse">
+                <div className="flex justify-between">
+                  <div className="w-1/3 h-5 bg-gray-200 rounded mb-2"></div>
+                  <div className="w-1/4 h-5 bg-gray-200 rounded"></div>
+                </div>
+                <div className="w-2/3 h-8 bg-gray-200 rounded mt-1 mb-4"></div>
+                <div className="flex gap-3 mt-3">
+                  <div className="w-1/4 h-5 bg-gray-200 rounded"></div>
+                  <div className="w-1/4 h-5 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <FadeIn>
@@ -104,7 +146,7 @@ const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ userId }) => {
                     <div>
                       <div className="font-medium">{transaction.merchant}</div>
                       <div className="text-2xl font-bold mt-1">
-                        {formatCurrency(transaction.amount, transaction.currency)}
+                        {formatCurrency(Number(transaction.amount), transaction.currency)}
                       </div>
                     </div>
                     <div className="flex flex-col items-end">
@@ -137,9 +179,7 @@ const RealtimeMonitoring: React.FC<RealtimeMonitoringProps> = ({ userId }) => {
                   
                   <div className="flex gap-3 mt-3">
                     <Badge variant="outline">
-                      {transaction.payment_method.split('_').map(word => 
-                        word.charAt(0).toUpperCase() + word.slice(1)
-                      ).join(' ')}
+                      {formatPaymentMethod(transaction.payment_method)}
                     </Badge>
                     
                     {transaction.city && transaction.country && (
