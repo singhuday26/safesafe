@@ -12,6 +12,9 @@ interface FraudMonitoringDashboardProps {
 }
 
 const FraudMonitoringDashboard: React.FC<FraudMonitoringDashboardProps> = ({ userId }) => {
+  // We can use the userId parameter here if needed for future implementations
+  console.log("Rendering fraud monitoring dashboard for user:", userId);
+  
   return (
     <FadeIn>
       <FraudDetectionDashboard />
