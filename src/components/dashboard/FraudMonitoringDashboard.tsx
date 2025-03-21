@@ -7,7 +7,7 @@ import { useSecurityAlerts } from "@/hooks/useSecurityAlerts";
 import { FadeIn } from "@/components/animations/FadeIn";
 import FraudDetectionDashboard from "./FraudDetectionDashboard";
 
-interface FraudMonitoringDashboardProps {
+export interface FraudMonitoringDashboardProps {
   userId: string;
 }
 

@@ -15,7 +15,7 @@ export interface ExtendedTransaction extends Omit<Transaction, 'card_last4' | 'c
   paymentMethod?: string;
   riskScore?: number;
   
-  // Optional fields from Transaction that need to remain optional
+  // Optional fields from Transaction that were omitted and need to be redefined as optional
   card_last4?: string;
   city?: string;
   country?: string;
