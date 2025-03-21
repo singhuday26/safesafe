@@ -70,7 +70,7 @@ export const useRealtimeFraudAlerts = ({
       }, (payload) => {
         const newAlert = payload.new as SecurityAlert;
         
-        // Show a toast notification
+        // Show a toast notification with the correct variant type
         const variant = getSeverityVariant(newAlert.severity);
           
         toast({
