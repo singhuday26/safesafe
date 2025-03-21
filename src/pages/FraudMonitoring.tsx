@@ -7,8 +7,9 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
+// Make sure FraudMonitoringDashboard accepts a proper userId type
 interface FraudMonitoringDashboardProps {
-  userId?: string;
+  userId: string;
 }
 
 const FraudMonitoring: React.FC = () => {

@@ -10,31 +10,21 @@ export interface Customer {
 }
 
 // Extended transaction interface with frontend-specific properties
-export interface ExtendedTransaction extends Transaction {
+export interface ExtendedTransaction extends Omit<Transaction, 'card_last4' | 'city' | 'country' | 'ip_address' | 'device_info'> {
   customer?: Customer;
-  // Make sure these properties mirror the ones in Transaction
-  amount: number;
-  currency: string;
-  payment_method: string;
   paymentMethod?: string;
   riskScore?: number;
-  risk_score: number;
-  timestamp: string;
-  status: 'approved' | 'declined' | 'flagged';
-  type: 'payment' | 'refund' | 'payout';
-  merchant: string;
+  
+  // Optional fields from Transaction that need to remain optional
   card_last4?: string;
-  location?: {
-    country?: string;
-    city?: string;
-  };
-  id: string;
-  // Adding other Transaction fields that might be used elsewhere
-  user_id: string;
-  transaction_number?: string;
-  created_at: string;
   city?: string;
   country?: string;
   ip_address?: string;
   device_info?: any;
+  
+  // Location object for UI rendering
+  location?: {
+    country?: string;
+    city?: string;
+  };
 }
