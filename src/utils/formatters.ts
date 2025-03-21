@@ -1,4 +1,5 @@
 
+
 /**
  * Format a currency amount with the appropriate currency symbol
  */
@@ -106,12 +107,13 @@ export const formatAlertType = (type: string): string => {
  * Get badge variant based on alert severity
  * Ensure it returns only 'default' or 'destructive' for use with toast
  */
-export const getSeverityVariant = (severity: string): 'default' | 'destructive' | 'outline' | 'secondary' => {
+export const getSeverityVariant = (severity: string): 'default' | 'destructive' => {
   switch (severity) {
     case 'critical': return 'destructive';
     case 'high': return 'destructive';
     case 'medium': return 'default';
-    case 'low': return 'secondary';
-    default: return 'outline';
+    case 'low': return 'default';
+    default: return 'default';
   }
 };
+
