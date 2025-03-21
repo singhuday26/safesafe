@@ -1,5 +1,3 @@
-
-
 /**
  * Format a currency amount with the appropriate currency symbol
  */
@@ -116,4 +114,3 @@ export const getSeverityVariant = (severity: string): 'default' | 'destructive' 
     default: return 'default';
   }
 };
-

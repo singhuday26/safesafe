@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import FraudMonitoringDashboard from "@/components/dashboard/FraudMonitoringDashboard";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import { Button } from "@/components/ui/button";
