@@ -104,6 +104,7 @@ export const formatAlertType = (type: string): string => {
 
 /**
  * Get badge variant based on alert severity
+ * Ensure it returns only 'default' or 'destructive' for use with toast
  */
 export const getSeverityVariant = (severity: string): 'default' | 'destructive' | 'outline' | 'secondary' => {
   switch (severity) {

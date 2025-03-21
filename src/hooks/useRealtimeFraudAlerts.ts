@@ -72,11 +72,14 @@ export const useRealtimeFraudAlerts = ({
         
         // Show a toast notification
         const variant = getSeverityVariant(newAlert.severity);
+        
+        // Ensure the variant is compatible with the toast component
+        const toastVariant = variant === 'outline' || variant === 'secondary' ? 'default' : variant;
           
         toast({
           title: newAlert.title,
           description: newAlert.description,
-          variant
+          variant: toastVariant
         });
         
         // Update the alerts state

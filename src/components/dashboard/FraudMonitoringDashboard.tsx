@@ -61,7 +61,7 @@ const FraudMonitoringDashboard: React.FC<FraudMonitoringDashboardProps> = ({ use
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col items-center justify-center py-4">
-                  <RiskMeter value={riskMetrics?.overall_risk_score || 0} size={120} />
+                  <RiskMeter score={riskMetrics?.overall_risk_score || 0} size="lg" showLabel={true} />
                   <p className="mt-2 text-sm text-muted-foreground">
                     {riskMetrics?.overall_risk_score < 30 ? 'Low risk' : 
                      riskMetrics?.overall_risk_score < 70 ? 'Medium risk' : 'High risk'}
