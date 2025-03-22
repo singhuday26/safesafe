@@ -16,7 +16,7 @@ const FraudMonitoring: React.FC = () => {
       toast({
         title: "Generating Demo Data",
         description: "Please wait while we generate demo fraud detection data...",
-        variant: "default" 
+        variant: "default"
       });
 
       // Call the create_demo_data function in Supabase - let's handle the case safely

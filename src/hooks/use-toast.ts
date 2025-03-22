@@ -1,19 +1,26 @@
 
 import * as React from "react"
-import type {
-  ToastActionElement,
-  ToastProps,
-} from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+// Define the toast interface components
+interface ToastActionElement {
+  altText: string;
+  action: React.ReactNode;
+}
 
-type ToasterToast = ToastProps & {
+type ToastProps = {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  variant?: "default" | "destructive"
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
+
+const TOAST_LIMIT = 1
+const TOAST_REMOVE_DELAY = 1000000
+
+type ToasterToast = ToastProps
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -137,17 +144,12 @@ function dispatch(action: Action) {
   })
 }
 
-type ToastProps = {
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: ToastActionElement
-  variant?: "default" | "destructive"
-}
+type ToastInputProps = Omit<ToastProps, "id" | "open" | "onOpenChange">
 
-function toast({ ...props }: ToastProps) {
+function toast({ ...props }: ToastInputProps) {
   const id = genId()
 
-  const update = (props: ToastProps) =>
+  const update = (props: ToastInputProps) =>
     dispatch({
       type: "UPDATE_TOAST",
       toast: { ...props, id },
@@ -193,4 +195,4 @@ function useToast() {
   }
 }
 
-export { useToast, toast }
+export { useToast, toast, type ToastProps }
