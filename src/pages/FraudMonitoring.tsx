@@ -16,7 +16,7 @@ const FraudMonitoring: React.FC = () => {
       toast({
         title: "Generating Demo Data",
         description: "Please wait while we generate demo fraud detection data...",
-        variant: "default" as const
+        variant: "default"
       });
 
       // Call the create_demo_data function in Supabase - let's handle the case safely
@@ -31,7 +31,7 @@ const FraudMonitoring: React.FC = () => {
         toast({
           title: "Demo Data Generated",
           description: "Fraud detection demo data has been successfully created.",
-          variant: "default" as const
+          variant: "default"
         });
       } catch (error) {
         console.error("Error calling RPC function:", error);
@@ -40,14 +40,14 @@ const FraudMonitoring: React.FC = () => {
         toast({
           title: "Demo Data Generated",
           description: "Fraud detection demo data has been successfully created (mock).",
-          variant: "default" as const
+          variant: "default"
         });
       }
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to generate demo data. Please try again.",
-        variant: "destructive" as const
+        variant: "destructive"
       });
       console.error("Error generating demo data:", error);
     }

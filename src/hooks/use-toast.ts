@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 // Define the toast interface components
@@ -10,7 +11,7 @@ export type ToastProps = {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
-  action?: React.ReactNode
+  action?: ToastActionElement
   variant?: "default" | "destructive"
   open?: boolean
   onOpenChange?: (open: boolean) => void
