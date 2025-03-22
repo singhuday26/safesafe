@@ -1,5 +1,5 @@
-import * as React from "react"
 
+import * as React from "react"
 import type {
   ToastActionElement,
   ToastProps,
@@ -137,12 +137,17 @@ function dispatch(action: Action) {
   })
 }
 
-type Toast = Omit<ToasterToast, "id">
+type ToastProps = {
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+  variant?: "default" | "destructive"
+}
 
-function toast({ ...props }: Toast) {
+function toast({ ...props }: ToastProps) {
   const id = genId()
 
-  const update = (props: ToasterToast) =>
+  const update = (props: ToastProps) =>
     dispatch({
       type: "UPDATE_TOAST",
       toast: { ...props, id },
