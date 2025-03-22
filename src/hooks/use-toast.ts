@@ -194,4 +194,4 @@ function useToast() {
   }
 }
 
-export { useToast, toast, type ToastProps }
+export { useToast, toast }
