@@ -7,6 +7,7 @@ export interface ToastActionElement {
   action: React.ReactNode;
 }
 
+// Define strict variants
 export type ToastVariant = "default" | "destructive";
 
 export type ToastProps = {
@@ -146,12 +147,18 @@ function dispatch(action: Action) {
   })
 }
 
-type ToastInput = Omit<ToastProps, "id" | "open" | "onOpenChange">
+// Explicitly define the toast function to accept our correct types
+export interface ToastOptions {
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+  variant?: ToastVariant
+}
 
-function toast(props: ToastInput) {
+function toast(options: ToastOptions) {
   const id = genId()
 
-  const update = (props: ToastInput) =>
+  const update = (props: ToastOptions) =>
     dispatch({
       type: "UPDATE_TOAST",
       toast: { ...props, id },
@@ -161,7 +168,7 @@ function toast(props: ToastInput) {
   dispatch({
     type: "ADD_TOAST",
     toast: {
-      ...props,
+      ...options,
       id,
       open: true,
       onOpenChange: (open) => {
