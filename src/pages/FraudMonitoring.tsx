@@ -16,7 +16,7 @@ const FraudMonitoring: React.FC = () => {
       toast({
         title: "Generating Demo Data",
         description: "Please wait while we generate demo fraud detection data...",
-        variant: "default"
+        variant: "default" // Fixed: Use literal "default" instead of string type
       });
 
       // Call the create_demo_data function in Supabase - let's handle the case safely
@@ -31,7 +31,7 @@ const FraudMonitoring: React.FC = () => {
         toast({
           title: "Demo Data Generated",
           description: "Fraud detection demo data has been successfully created.",
-          variant: "default"
+          variant: "default" // Fixed: Use literal "default" instead of string type
         });
       } catch (error) {
         console.error("Error calling RPC function:", error);
@@ -40,14 +40,14 @@ const FraudMonitoring: React.FC = () => {
         toast({
           title: "Demo Data Generated",
           description: "Fraud detection demo data has been successfully created (mock).",
-          variant: "default"
+          variant: "default" // Fixed: Use literal "default" instead of string type
         });
       }
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to generate demo data. Please try again.",
-        variant: "destructive"
+        variant: "destructive" // Fixed: Use literal "destructive" instead of string type
       });
       console.error("Error generating demo data:", error);
     }
