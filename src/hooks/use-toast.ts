@@ -1,17 +1,16 @@
-
 import * as React from "react"
 
 // Define the toast interface components
-interface ToastActionElement {
+export interface ToastActionElement {
   altText: string;
   action: React.ReactNode;
 }
 
-type ToastProps = {
+export type ToastProps = {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
-  action?: ToastActionElement
+  action?: React.ReactNode
   variant?: "default" | "destructive"
   open?: boolean
   onOpenChange?: (open: boolean) => void

@@ -1,5 +1,5 @@
 
 // Re-export the toast hooks from the correct location
-import { useToast, toast, type ToastProps } from "@/hooks/use-toast";
+import { useToast, toast, type ToastProps, type ToastActionElement } from "@/hooks/use-toast";
 
-export { useToast, toast, type ToastProps };
+export { useToast, toast, type ToastProps, type ToastActionElement };
