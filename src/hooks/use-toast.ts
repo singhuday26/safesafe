@@ -1,18 +1,20 @@
 
 import * as React from "react"
 
-// Define the toast interface components
+// Define proper types for the toast interface
 export interface ToastActionElement {
   altText: string;
   action: React.ReactNode;
 }
+
+export type ToastVariant = "default" | "destructive";
 
 export type ToastProps = {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
-  variant?: "default" | "destructive"
+  variant?: ToastVariant
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }
@@ -144,12 +146,12 @@ function dispatch(action: Action) {
   })
 }
 
-type ToastInputProps = Omit<ToastProps, "id" | "open" | "onOpenChange">
+type ToastInput = Omit<ToastProps, "id" | "open" | "onOpenChange">
 
-function toast({ ...props }: ToastInputProps) {
+function toast(props: ToastInput) {
   const id = genId()
 
-  const update = (props: ToastInputProps) =>
+  const update = (props: ToastInput) =>
     dispatch({
       type: "UPDATE_TOAST",
       toast: { ...props, id },
