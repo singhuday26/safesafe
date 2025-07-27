@@ -4,6 +4,8 @@ SafeSafe: Protect Your Financial Future
 Overview
 SafeSafe is an advanced financial security platform designed to provide comprehensive fraud detection and protection for individuals and businesses. It empowers users to stay one step ahead of financial threats with real-time monitoring, smart alerts, and enterprise-grade security features, ensuring peace of mind and safeguarding assets.
 
+git clone URL: https://github.com/singhuday26/safesafe.git
+
 Features
 SafeSafe offers a suite of robust security features to protect your financial data and transactions 24/7:
 
