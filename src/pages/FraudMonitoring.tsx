@@ -22,7 +22,7 @@ const FraudMonitoring: React.FC = () => {
       // Call the create_demo_data function in Supabase - let's handle the case safely
       // if create_demo_data function doesn't exist (which can happen in development)
       try {
-        const { error } = await supabase.rpc('create_demo_data');
+        const { error } = await (supabase.rpc as any)('create_demo_data');
         
         if (error) {
           throw error;
